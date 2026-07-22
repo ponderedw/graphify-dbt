@@ -201,9 +201,9 @@ def build_graph_json(
             "refs": n.get("refs", []),
             "sources_used": n.get("sources", []),
             "tags": n.get("tags", []),
+            "database": n.get("database", ""),
+            "schema": n.get("schema", ""),
         }
-        if n.get("schema"):
-            node["schema"] = n["schema"]
 
         nodes_out.append(node)
 

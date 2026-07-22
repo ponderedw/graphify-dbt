@@ -156,6 +156,8 @@ def parse_manifest(manifest: dict, project_root: Path) -> dict:
         raw_code = raw.get("raw_code", raw.get("raw_sql", ""))
         tags = raw.get("tags", [])
         group = raw.get("group", None)
+        database = raw.get("database", "") or config.get("database", "")
+        schema = raw.get("schema", "") or config.get("schema", "")
 
         refs_in_code = extract_refs_from_sql(raw_code) if raw_code else []
         sources_in_code = extract_sources_from_sql(raw_code) if raw_code else []
@@ -195,6 +197,8 @@ def parse_manifest(manifest: dict, project_root: Path) -> dict:
             "sources": [f"{s[0]}.{s[1]}" for s in sources_in_code],
             "tags": tags,
             "group": group,
+            "database": database,
+            "schema": schema,
             "upstream": up_ids,
             "downstream": down_ids,
         })
@@ -225,6 +229,7 @@ def parse_manifest(manifest: dict, project_root: Path) -> dict:
             "sources": [],
             "tags": raw.get("tags", []),
             "group": raw.get("group", None),
+            "database": raw.get("database", ""),
             "schema": source_name,
             "upstream": [],
             "downstream": down_ids,

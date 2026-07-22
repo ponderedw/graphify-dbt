@@ -115,6 +115,8 @@ Each node in `graph.json` carries these flat fields (readable by `graphify query
 | `community` | `1` |
 | `upstream` | `["source.my_project.raw.orders"]` |
 | `downstream` | `["model.my_project.int_order_metrics", ...]` |
+| `database` | `"analytics"` |
+| `schema` | `"dbt_prod"` |
 | `columns` | `["order_id", "customer_id", "status_label", ...]` |
 
 ## Community detection
