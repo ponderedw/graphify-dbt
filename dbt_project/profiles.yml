@@ -1,0 +1,12 @@
+hs_analytics:
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('DBT_HOST', 'localhost') }}"
+      port: "{{ env_var('DBT_PORT', '5432') | int }}"
+      dbname: "{{ env_var('DBT_DBNAME', 'education_dw') }}"
+      user: "{{ env_var('DBT_USER', 'dbt_user') }}"
+      password: "{{ env_var('DBT_PASSWORD', 'dbt_password') }}"
+      schema: public
+      threads: 4
+  target: dev

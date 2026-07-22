@@ -1,0 +1,60 @@
+version: 2
+
+sources:
+  - name: raw_edu
+    description: Raw educational data from source systems
+    tables:
+      - name: students
+        description: Student master records
+        columns:
+          - name: student_id
+            tests: [unique, not_null]
+          - name: email
+            tests: [unique]
+
+      - name: courses
+        description: Course catalog
+        columns:
+          - name: course_id
+            tests: [unique, not_null]
+          - name: course_code
+            tests: [unique]
+
+      - name: departments
+        description: Academic departments
+        columns:
+          - name: department_id
+            tests: [unique, not_null]
+
+      - name: faculty
+        description: Faculty and staff
+        columns:
+          - name: faculty_id
+            tests: [unique, not_null]
+
+      - name: enrollments
+        description: Student course enrollments
+        columns:
+          - name: enrollment_id
+            tests: [unique, not_null]
+
+      - name: semesters
+        description: Academic semesters
+        columns:
+          - name: semester_id
+            tests: [unique, not_null]
+
+      - name: class_sessions
+        description: Individual class session records
+
+      - name: assignments
+        description: Course assignments
+
+      - name: assignment_submissions
+        description: Student assignment submissions
+
+      - name: financial_aid
+        description: Student financial aid records
+
+      - name: tuition_payments
+        description: Student tuition payment records
