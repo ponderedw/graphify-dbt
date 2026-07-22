@@ -1,2 +1,9 @@
 dbt_project/target
 dbt_project/logs
+graphify-out/
+dist/
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+.DS_Store

@@ -1,0 +1,39 @@
+[project]
+name = "dbt-graphify"
+version = "0.1.0"
+description = "Parse a dbt manifest.json into a graphify-queryable knowledge graph"
+readme = "README.md"
+license = "MIT"
+authors = [{name = "Ponder Labs"}]
+keywords = ["dbt", "graphify", "lineage", "knowledge-graph", "data-catalog"]
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Database",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.urls]
+Homepage = "https://github.com/ponder-co/dbt-graphify"
+Repository = "https://github.com/ponder-co/dbt-graphify"
+
+[project.scripts]
+dbt-graphify = "dbt_graphify.cli:main"
+
+[project.optional-dependencies]
+yaml = ["PyYAML>=6.0"]
+clustering = ["networkx>=3.0"]
+all = ["PyYAML>=6.0", "networkx>=3.0"]
+
+[tool.poetry]
+packages = [{include = "dbt_graphify"}]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
