@@ -387,6 +387,54 @@ def write_graphify_labels(out_dir: Path, community_labels: dict[int, str]):
     )
 
 
+# ── CLAUDE.md ─────────────────────────────────────────────────────────────────
+
+_CLAUDE_START = "<!-- dbt-graphify start -->"
+_CLAUDE_END = "<!-- dbt-graphify end -->"
+
+
+def write_claude_md(repo_root: Path, manifest_path: Path):
+    """Upsert the graphify lineage instruction block into CLAUDE.md."""
+    try:
+        rel_manifest = manifest_path.resolve().relative_to(repo_root.resolve())
+    except ValueError:
+        rel_manifest = manifest_path
+
+    block = "\n".join([
+        _CLAUDE_START,
+        "## dbt lineage queries",
+        "",
+        "This project has a graphify knowledge graph at `graphify-out/graph.json` built from the dbt manifest.",
+        "",
+        "**Always use graphify commands to answer questions about models, dependencies, lineage, or blast radius — do not grep SQL files.**",
+        "",
+        "```bash",
+        "graphify explain \"<model_name>\"      # upstream/downstream connections",
+        "graphify path \"<source>\" \"<target>\"  # shortest path between two models",
+        "graphify query \"<question>\"          # broader lineage questions",
+        "```",
+        "",
+        "To rebuild the graph:",
+        "",
+        "```bash",
+        f"dbt-graphify {rel_manifest}",
+        "```",
+        _CLAUDE_END,
+    ])
+
+    claude_md = repo_root / "CLAUDE.md"
+    if claude_md.exists():
+        existing = claude_md.read_text(encoding="utf-8")
+        if _CLAUDE_START in existing:
+            # Update our block in-place between the sentinels
+            start = existing.index(_CLAUDE_START)
+            end = existing.index(_CLAUDE_END) + len(_CLAUDE_END)
+            claude_md.write_text(existing[:start] + block + existing[end:], encoding="utf-8")
+        # CLAUDE.md exists without our sentinels — leave it alone
+    else:
+        claude_md.write_text(block + "\n", encoding="utf-8")
+
+
 # ── HTML via graphify cluster-only ────────────────────────────────────────────
 
 def generate_html(out_dir: Path, project_root: Path):

@@ -18,6 +18,7 @@ from dbt_graphify.builder import (
     write_report,
     write_graphify_root,
     write_graphify_labels,
+    write_claude_md,
     generate_html,
 )
 
@@ -107,6 +108,9 @@ def main():
     write_graphify_root(out_dir, project_root)
     write_graphify_labels(out_dir, community_labels)
 
+    # ── CLAUDE.md ─────────────────────────────────────────────────────────────
+    write_claude_md(cwd, manifest_path)
+
     # ── graph.html via graphify ───────────────────────────────────────────────
     # cluster-only needs the directory that *contains* graphify-out/, not the dbt project root
     if not skip_html:
@@ -125,6 +129,7 @@ def main():
     print(f"✓ {out_dir}/GRAPH_REPORT.md")
     print(f"✓ {out_dir}/.graphify_root")
     print(f"✓ {out_dir}/.graphify_labels.json")
+    print(f"✓ CLAUDE.md                    (graphify lineage instruction upserted)")
     print(f"\nNode breakdown:")
     for layer in ["source", "staging", "intermediate", "mart", "seed", "macro"]:
         if layer_counts[layer]:
