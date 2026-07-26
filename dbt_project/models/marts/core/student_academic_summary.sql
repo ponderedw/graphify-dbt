@@ -23,9 +23,9 @@ with student_summary as (
         round(eh.total_credits_earned::numeric / nullif(eh.total_credits_attempted, 0) * 100, 2) as completion_rate,
         case
             when eh.total_credits_earned >= 120 then 'Graduation Ready'
-            when eh.total_credits_earned >= 90  then 'Senior Standing'
-            when eh.total_credits_earned >= 60  then 'Junior Standing'
-            when eh.total_credits_earned >= 30  then 'Sophomore Standing'
+            when eh.total_credits_earned >= 90 then 'Senior Standing'
+            when eh.total_credits_earned >= 60 then 'Junior Standing'
+            when eh.total_credits_earned >= 30 then 'Sophomore Standing'
             else 'Freshman Standing'
         end as class_standing,
         case
@@ -37,15 +37,15 @@ with student_summary as (
     from {{ ref('stg_students') }} s
     left join {{ ref('stg_departments') }} d on s.major_id = d.department_id
     left join (
-        select
+        select 
             student_id,
-            max(total_enrollments)       as total_enrollments,
+            max(total_enrollments) as total_enrollments,
             max(total_credits_attempted) as total_credits_attempted,
-            max(total_credits_earned)    as total_credits_earned,
-            max(failed_courses_count)    as failed_courses_count,
+            max(total_credits_earned) as total_credits_earned,
+            max(failed_courses_count) as failed_courses_count,
             max(withdrawn_courses_count) as withdrawn_courses_count,
-            max(avg_grade_points)        as avg_grade_points,
-            max(avg_attendance)          as avg_attendance
+            max(avg_grade_points) as avg_grade_points,
+            max(avg_attendance) as avg_attendance
         from {{ ref('int_student_enrollment_history') }}
         group by student_id
     ) eh on s.student_id = eh.student_id

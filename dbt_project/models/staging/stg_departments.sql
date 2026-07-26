@@ -8,7 +8,7 @@ with source_data as (
         head_faculty_id,
         budget,
         building_location,
-        case
+        case 
             when budget >= 3000000 then 'Large'
             when budget >= 2000000 then 'Medium'
             when budget >= 1000000 then 'Small'

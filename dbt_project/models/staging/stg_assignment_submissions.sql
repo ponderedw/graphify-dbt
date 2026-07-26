@@ -11,8 +11,8 @@ with source_data as (
         feedback,
         case
             when score is null then 'Not Graded'
-            when score = 0     then 'Zero Score'
-            when score > 0     then 'Graded'
+            when score = 0 then 'Zero Score'
+            when score > 0 then 'Graded'
             else 'Unknown'
         end as grading_status,
         case

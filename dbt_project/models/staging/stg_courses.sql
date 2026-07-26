@@ -10,7 +10,7 @@ with source_data as (
         department_id,
         prerequisite_course_id,
         difficulty_level,
-        case
+        case 
             when difficulty_level = 1 then 'Beginner'
             when difficulty_level = 2 then 'Intermediate'
             when difficulty_level = 3 then 'Advanced'

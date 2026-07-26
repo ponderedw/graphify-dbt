@@ -1,0 +1,170 @@
+version: 2
+
+models:
+  - name: student_retention_analysis
+    description: >
+      Student retention rates and cohort analysis by program and quarter.
+      Identifies when and why students are most likely to leave, enabling
+      targeted retention interventions.
+    columns:
+      - name: cohort_quarter_id
+        description: Quarter when the cohort first enrolled.
+      - name: department_id
+        description: Major department of the cohort.
+      - name: cohort_size
+        description: Number of students who started in this cohort.
+      - name: retained_next_quarter
+        description: Number still enrolled the following quarter.
+      - name: retention_rate
+        description: Fraction retained (0.0–1.0).
+      - name: avg_gpa_retained
+        description: Average GPA of students who were retained.
+      - name: avg_gpa_departed
+        description: Average GPA of students who departed.
+
+  - name: quarter_enrollment_trends
+    description: >
+      Enrollment trend analysis broken down by quarter, department and
+      student level. Highlights seasonal patterns and growth trajectories
+      for capacity planning.
+    columns:
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: department_id
+        description: Foreign key to the academic department.
+      - name: student_level
+        description: "Class level: Freshman, Sophomore, Junior, Senior, or Graduate."
+      - name: enrolled_students
+        description: Number of distinct students enrolled this quarter.
+      - name: new_enrollments
+        description: Students enrolling for the first time.
+      - name: returning_enrollments
+        description: Students who were enrolled in the prior quarter.
+      - name: yoy_change_pct
+        description: Year-over-year percentage change in enrollment.
+
+  - name: learning_outcome_assessment
+    description: >
+      Learning outcome achievement rates by course and program. Measures
+      whether students are meeting defined competency targets based on
+      grade thresholds and assignment scores.
+    columns:
+      - name: course_id
+        description: Foreign key to the course.
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: students_assessed
+        description: Number of students assessed against learning outcomes.
+      - name: outcomes_met_rate
+        description: Fraction of students who met all defined learning outcomes.
+      - name: avg_competency_score
+        description: Average competency score across all assessed students.
+      - name: below_threshold_count
+        description: Number of students who did not meet the minimum outcome threshold.
+
+  - name: instructor_effectiveness_scorecard
+    description: >
+      Instructor effectiveness scoring using student grade outcomes, pass
+      rates, attendance rates, and assignment completion rates as proxy
+      metrics. Supports peer review and professional development planning.
+    columns:
+      - name: faculty_id
+        description: Foreign key to the faculty member.
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: courses_taught
+        description: Number of distinct courses taught.
+      - name: avg_student_grade
+        description: Average grade points in instructor-led courses.
+      - name: pass_rate
+        description: Average pass rate across all instructor-led sections.
+      - name: attendance_rate
+        description: Average student attendance rate in instructor-led sessions.
+      - name: effectiveness_percentile
+        description: Percentile rank among all instructors for this quarter.
+
+  - name: course_difficulty_calibration
+    description: >
+      Course difficulty ratings calibrated against actual student performance
+      data. Helps school leaders set realistic expectations and identify courses
+      that may need curriculum revision.
+    columns:
+      - name: course_id
+        description: Foreign key to the course.
+      - name: difficulty_index
+        description: Numeric difficulty score (1 = easiest, 10 = hardest) based on grade distribution.
+      - name: avg_pass_rate
+        description: Historical average pass rate across all offerings.
+      - name: avg_grade_points
+        description: Historical average grade points.
+      - name: withdrawal_rate
+        description: Historical average withdrawal rate.
+      - name: difficulty_category
+        description: "Categorical label: Easy, Moderate, Hard, or Very Hard."
+
+  - name: assignment_workload_analysis
+    description: >
+      Assignment workload distribution and time pressure analysis per course
+      and quarter. Identifies courses with unusually high workload density
+      or assignment clustering near deadlines.
+    columns:
+      - name: course_id
+        description: Foreign key to the course.
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: total_assignments
+        description: Total number of graded assignments in the course.
+      - name: avg_points_per_assignment
+        description: Average maximum points per assignment.
+      - name: submission_rate
+        description: Average fraction of students who submitted each assignment.
+      - name: late_submission_rate
+        description: Average fraction of submissions that were late.
+      - name: workload_index
+        description: Composite workload score relative to the department average.
+
+  - name: course_success_predictors
+    description: >
+      Predictive features and success probability scores for each
+      student-course combination. Enables school leaders to identify students
+      at risk of failing a specific course before the quarter ends.
+    columns:
+      - name: student_id
+        description: Foreign key to the student.
+      - name: course_id
+        description: Foreign key to the course.
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: prior_gpa
+        description: Student's GPA at the start of the quarter.
+      - name: prerequisite_completion_rate
+        description: Fraction of course prerequisites completed with a passing grade.
+      - name: attendance_rate_so_far
+        description: Attendance rate in this course to date.
+      - name: assignment_completion_rate
+        description: Fraction of assignments submitted to date.
+      - name: predicted_success_probability
+        description: Model-estimated probability (0.0–1.0) of the student passing the course.
+
+  - name: competitive_program_benchmarking
+    description: >
+      Program performance benchmarking metrics comparing departments against
+      each other and against institutional averages. Supports strategic
+      programme portfolio decisions.
+    columns:
+      - name: department_id
+        description: Foreign key to the department being benchmarked.
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: department_avg_gpa
+        description: Average GPA of students in the department.
+      - name: institutional_avg_gpa
+        description: Institution-wide average GPA for comparison.
+      - name: gpa_vs_avg
+        description: Difference between department and institutional average GPA.
+      - name: enrollment_share_pct
+        description: Department's share of total institution enrollment.
+      - name: graduation_rate_vs_avg
+        description: Department graduation rate relative to the institutional average.
+      - name: benchmark_tier
+        description: "Performance tier: Top, Above Average, Average, or Below Average."

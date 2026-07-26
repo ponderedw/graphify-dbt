@@ -2,47 +2,69 @@ version: 2
 
 sources:
   - name: raw_edu
-    description: Raw educational data from source systems
+    description: Raw educational data from various systems
     tables:
       - name: students
-        description: Student master records
+        description: Student master data
         columns:
           - name: student_id
-            tests: [unique, not_null]
+            description: Unique student identifier
+            tests:
+              - unique
+              - not_null
           - name: email
-            tests: [unique]
+            description: Student email address
+            tests:
+              - unique
 
       - name: courses
         description: Course catalog
         columns:
           - name: course_id
-            tests: [unique, not_null]
+            description: Unique course identifier
+            tests:
+              - unique
+              - not_null
           - name: course_code
-            tests: [unique]
+            description: Course code
+            tests:
+              - unique
 
       - name: departments
         description: Academic departments
         columns:
           - name: department_id
-            tests: [unique, not_null]
+            description: Unique department identifier
+            tests:
+              - unique
+              - not_null
 
       - name: faculty
-        description: Faculty and staff
+        description: Faculty and staff information
         columns:
           - name: faculty_id
-            tests: [unique, not_null]
+            description: Unique faculty identifier
+            tests:
+              - unique
+              - not_null
 
       - name: enrollments
         description: Student course enrollments
         columns:
           - name: enrollment_id
-            tests: [unique, not_null]
+            description: Unique enrollment identifier
+            tests:
+              - unique
+              - not_null
 
-      - name: semesters
-        description: Academic semesters
+      - name: quarters
+        description: Academic quarter information
         columns:
-          - name: semester_id
-            tests: [unique, not_null]
+          - name: quarter_id
+            description: Unique quarter identifier
+            tests:
+              - unique
+              - not_null
 
       - name: class_sessions
         description: Individual class session records
@@ -53,8 +75,8 @@ sources:
       - name: assignment_submissions
         description: Student assignment submissions
 
-      - name: financial_aid
-        description: Student financial aid records
+      - name: extracurricular_activities
+        description: Student extracurricular activity participation records
 
-      - name: tuition_payments
-        description: Student tuition payment records
+      - name: attendance_records
+        description: Student attendance records by quarter

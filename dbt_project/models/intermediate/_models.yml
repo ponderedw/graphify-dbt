@@ -1,0 +1,240 @@
+version: 2
+
+models:
+  - name: int_student_enrollment_history
+    description: >
+      Aggregated enrollment history per student across all quarters and courses.
+      Computes cumulative credit counts, course outcome rates, average grade
+      points and average attendance. Used to power student-level analytics.
+    columns:
+      - name: student_id
+        description: Foreign key to the student; grain is one row per student.
+      - name: total_enrollments
+        description: Total number of course enrollments across all quarters.
+      - name: total_credits_attempted
+        description: Sum of credit hours for all attempted courses.
+      - name: total_credits_earned
+        description: Sum of credit hours for courses with a passing grade.
+      - name: failed_courses_count
+        description: Number of courses where the grade was F.
+      - name: withdrawn_courses_count
+        description: Number of courses where the student withdrew (grade W).
+      - name: avg_grade_points
+        description: Average numeric grade points across all completed courses.
+      - name: avg_attendance
+        description: Average attendance rate (0–100) across all courses.
+
+  - name: int_course_performance_metrics
+    description: >
+      Course-level performance metrics aggregated per quarter. Includes pass
+      rate, average grade, enrollment count, and average attendance. Feeds
+      mart models for course difficulty and instructor effectiveness.
+    columns:
+      - name: course_id
+        description: Foreign key to the course.
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: enrollment_count
+        description: Number of students enrolled in this course-quarter.
+      - name: pass_rate
+        description: Fraction of students who earned a passing grade (0.0–1.0).
+      - name: avg_grade_points
+        description: Mean numeric grade points for enrolled students.
+      - name: avg_attendance
+        description: Mean attendance rate across enrolled students.
+      - name: withdrawal_rate
+        description: Fraction of students who withdrew from the course.
+
+  - name: int_faculty_teaching_load
+    description: >
+      Faculty teaching load analysis per quarter. Aggregates section count,
+      total enrolled students and unique courses taught. Used for workload
+      fairness analysis and capacity planning.
+    columns:
+      - name: faculty_id
+        description: Foreign key to the faculty member.
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: sections_taught
+        description: Number of distinct course sections taught this quarter.
+      - name: unique_courses
+        description: Number of distinct course IDs taught.
+      - name: total_students
+        description: Total number of students across all sections.
+      - name: total_sessions
+        description: Total number of class sessions held.
+
+  - name: int_department_analytics
+    description: >
+      Department-level analytics per quarter including enrollment counts,
+      grade distributions and credit-hour production. Supports department
+      efficiency and budget allocation reporting.
+    columns:
+      - name: department_id
+        description: Foreign key to the academic department.
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: enrolled_students
+        description: Distinct students enrolled in at least one department course.
+      - name: course_sections
+        description: Total course sections offered by the department.
+      - name: avg_course_grade
+        description: Average grade points across all department courses this quarter.
+      - name: credit_hours_produced
+        description: Total credit hours earned by students in department courses.
+      - name: faculty_count
+        description: Number of faculty who taught at least one section.
+
+  - name: int_assignment_performance
+    description: >
+      Assignment-level aggregation of submission scores and completion rates.
+      One row per assignment per quarter. Used to analyze workload distribution
+      and grading patterns.
+    columns:
+      - name: assignment_id
+        description: Foreign key to the assignment.
+      - name: total_submissions
+        description: Number of student submissions received.
+      - name: on_time_submissions
+        description: Number of submissions received on or before the due date.
+      - name: avg_score
+        description: Average score across all graded submissions.
+      - name: max_score_awarded
+        description: Highest score any student received.
+      - name: min_score_awarded
+        description: Lowest score any student received.
+      - name: completion_rate
+        description: Fraction of enrolled students who submitted (0.0–1.0).
+
+  - name: int_student_at_risk_indicators
+    description: >
+      Early warning indicators for students showing signs of academic difficulty.
+      Flags students based on GPA thresholds, attendance decline, failed courses
+      and assessment score signals. Feeds the academic_early_warning_system mart.
+    columns:
+      - name: student_id
+        description: Foreign key to the student.
+      - name: low_gpa_flag
+        description: True if current GPA is below 2.0.
+      - name: failing_course_count
+        description: Number of courses currently at risk of failing this quarter.
+      - name: low_attendance_flag
+        description: True if average attendance dropped below 75% this quarter.
+      - name: assessment_score_flag
+        description: True if the student has chronic unexcused absences with no extracurricular engagement.
+      - name: risk_score
+        description: Composite risk score (0–100) combining GPA, attendance and engagement signals.
+
+  - name: int_student_success_predictors
+    description: >
+      Feature set for predicting student academic success. Combines enrollment
+      history, assignment performance, attendance patterns and extracurricular
+      engagement into a single row per student for ML or reporting use.
+    columns:
+      - name: student_id
+        description: Foreign key to the student.
+      - name: cumulative_gpa
+        description: Student's cumulative GPA at time of snapshot.
+      - name: avg_attendance_last_quarter
+        description: Average attendance rate during the most recent completed quarter.
+      - name: on_time_submission_rate
+        description: Fraction of assignments submitted on time historically.
+      - name: avg_attendance_rate
+        description: Average attendance percentage across all recorded quarters.
+      - name: credits_remaining
+        description: Estimated credits remaining to reach graduation requirements.
+
+  - name: int_faculty_student_interactions
+    description: >
+      Analyzed faculty-student interaction patterns derived from class session
+      records. Captures engagement metrics such as session attendance per
+      faculty member and student contact hours.
+    columns:
+      - name: faculty_id
+        description: Foreign key to the faculty member.
+      - name: student_id
+        description: Foreign key to the student.
+      - name: shared_sessions
+        description: Number of class sessions where the student attended a session led by this faculty member.
+      - name: avg_student_score_in_faculty_courses
+        description: Student's average grade in courses taught by this faculty member.
+
+  - name: int_course_prerequisite_chains
+    description: >
+      Recursive prerequisite chain analysis. Each row represents a
+      prerequisite-course pair at any depth in the dependency chain.
+      Enables curriculum path visualisation and prerequisite enforcement checks.
+    columns:
+      - name: course_id
+        description: The downstream course that has prerequisites.
+      - name: prerequisite_id
+        description: A course that must be completed before course_id.
+      - name: chain_depth
+        description: How many levels deep this prerequisite sits in the chain (1 = direct prerequisite).
+
+  - name: int_curriculum_flow_analysis
+    description: >
+      Course prerequisite and curriculum flow analysis. Identifies common
+      pathways, bottleneck courses, and curriculum coverage gaps across
+      departments.
+    columns:
+      - name: department_id
+        description: Foreign key to the department.
+      - name: course_id
+        description: Foreign key to the course being analysed.
+      - name: prerequisite_count
+        description: Total prerequisites (at any depth) required before this course.
+      - name: dependent_course_count
+        description: Number of courses that depend on this course as a prerequisite.
+      - name: is_bottleneck
+        description: True if many downstream courses depend on this one, making it a curriculum bottleneck.
+
+  - name: int_grade_inflation_analysis
+    description: >
+      Grade distribution analysis across courses, departments and quarters
+      to detect potential grade inflation patterns. Compares current average
+      grades to historical baselines.
+    columns:
+      - name: course_id
+        description: Foreign key to the course.
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: avg_grade_this_quarter
+        description: Average grade points for this course this quarter.
+      - name: avg_grade_historical
+        description: Historical average grade points for this course across all prior quarters.
+      - name: grade_deviation
+        description: Difference between current and historical average (positive = inflation).
+      - name: inflation_flag
+        description: True if the grade deviation exceeds the institution's defined threshold.
+
+  - name: int_resource_utilization_analysis
+    description: >
+      Campus resource utilisation metrics derived from class session records.
+      Measures room occupancy rates and session scheduling efficiency per
+      quarter.
+    columns:
+      - name: room
+        description: Room identifier.
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: total_sessions_held
+        description: Number of class sessions held in this room this quarter.
+      - name: avg_occupancy_rate
+        description: Average fraction of max room capacity used (based on attendance_count vs. room capacity).
+      - name: total_hours_used
+        description: Total hours of scheduled use for this room.
+
+  - name: int_academic_collaboration_networks
+    description: >
+      Academic collaboration network analysis. Identifies co-teaching patterns
+      and cross-departmental collaboration between faculty members.
+    columns:
+      - name: faculty_id_a
+        description: One faculty member in the collaboration pair.
+      - name: faculty_id_b
+        description: The other faculty member in the collaboration pair.
+      - name: shared_courses
+        description: Number of distinct courses both faculty members have taught.
+      - name: collaboration_strength
+        description: Weighted score indicating the depth of collaboration (higher = more co-teaching).

@@ -5,15 +5,15 @@ with source_data as (
         session_id,
         course_id,
         faculty_id,
-        semester_id,
+        quarter_id,
         session_time,
         session_date,
         room_id,
         attendance_count,
-        extract(dow  from session_date) as day_of_week,
+        extract(dow from session_date) as day_of_week,
         extract(hour from session_time) as session_hour,
         case
-            when extract(hour from session_time) between 8  and 11 then 'Morning'
+            when extract(hour from session_time) between 8 and 11 then 'Morning'
             when extract(hour from session_time) between 12 and 16 then 'Afternoon'
             when extract(hour from session_time) between 17 and 21 then 'Evening'
             else 'Night'

@@ -1,0 +1,295 @@
+version: 2
+
+models:
+  - name: stg_students
+    description: >
+      Staged student master data from the raw source. Enriches raw records with
+      calculated fields such as age, years_enrolled, academic_standing and
+      current_status derived from GPA thresholds. One row per student.
+    columns:
+      - name: student_id
+        description: Unique surrogate identifier for a student.
+      - name: first_name
+        description: Student's given first name.
+      - name: last_name
+        description: Student's family last name.
+      - name: full_name
+        description: Concatenated first and last name for display purposes.
+      - name: email
+        description: Student's institutional email address. Must be unique.
+      - name: date_of_birth
+        description: Student's date of birth used to calculate current age.
+      - name: enrollment_date
+        description: Date the student first enrolled at the institution.
+      - name: graduation_date
+        description: Date the student graduated, or NULL if still enrolled.
+      - name: student_status
+        description: Raw status flag from the source system (e.g. active, inactive, withdrawn).
+      - name: gpa
+        description: Cumulative grade point average on a 4.0 scale.
+      - name: major_id
+        description: Foreign key to the department that is the student's declared major.
+      - name: school_leader_id
+        description: Foreign key to the faculty member acting as academic school leader.
+      - name: address_id
+        description: Foreign key to the student's address record.
+      - name: age
+        description: Current age in years calculated from date_of_birth at runtime.
+      - name: years_enrolled
+        description: Number of years since the student's enrollment_date.
+      - name: academic_standing
+        description: "Derived standing: Dean's List (GPA ≥ 3.5), Good Standing (≥ 3.0), Academic Warning (≥ 2.0), or Academic Probation (< 2.0)."
+      - name: current_status
+        description: "Human-readable status: Graduated, Active, At Risk, or raw status value."
+      - name: created_at
+        description: Timestamp when the source record was created.
+
+  - name: stg_courses
+    description: >
+      Staged course catalog data. Provides clean course codes, names, credit
+      hours and department associations for downstream models.
+    columns:
+      - name: course_id
+        description: Unique surrogate identifier for a course.
+      - name: course_code
+        description: Institutional course code (e.g. CS101). Must be unique.
+      - name: course_name
+        description: Full descriptive name of the course.
+      - name: department_id
+        description: Foreign key to the owning academic department.
+      - name: credits
+        description: Number of credit hours the course is worth.
+      - name: course_level
+        description: Numeric course level (100 = freshman through 400+ = graduate).
+      - name: max_enrollment
+        description: Maximum number of students allowed to enroll in one section.
+      - name: prerequisites
+        description: JSON array of course_ids that must be completed before enrollment.
+      - name: description
+        description: Human-readable course description from the course catalog.
+      - name: is_active
+        description: Boolean flag indicating whether the course is currently offered.
+
+  - name: stg_departments
+    description: >
+      Staged academic department data with codes, names, and budget information.
+      One row per department.
+    columns:
+      - name: department_id
+        description: Unique surrogate identifier for an academic department.
+      - name: department_code
+        description: Short alphanumeric code used to prefix course numbers (e.g. CS, MATH).
+      - name: department_name
+        description: Full name of the department.
+      - name: college
+        description: The college or school this department belongs to.
+      - name: head_faculty_id
+        description: Foreign key to the faculty member who is the department chair.
+      - name: annual_budget
+        description: Allocated annual operating budget in USD.
+      - name: established_year
+        description: Year the department was established.
+
+  - name: stg_enrollments
+    description: >
+      Staged student course enrollment records. Each row represents one student's
+      registration in one course section during one quarter. Includes grade,
+      completion status and attendance rate.
+    columns:
+      - name: enrollment_id
+        description: Unique surrogate identifier for an enrollment record.
+      - name: student_id
+        description: Foreign key to the enrolled student.
+      - name: course_id
+        description: Foreign key to the course being taken.
+      - name: quarter_id
+        description: Foreign key to the academic quarter.
+      - name: section_number
+        description: Section identifier when multiple sections of the same course are offered.
+      - name: enrollment_date
+        description: Date the student registered for this course.
+      - name: grade
+        description: Letter grade awarded (A, B, C, D, F, W for withdrawal, I for incomplete).
+      - name: grade_points
+        description: Numeric grade points (0.0–4.0) corresponding to the letter grade.
+      - name: status
+        description: "Enrollment status: enrolled, completed, withdrawn, or failed."
+      - name: attendance_rate
+        description: Percentage of class sessions the student attended (0–100).
+      - name: credits_earned
+        description: Credits actually earned; 0 if grade is F or W.
+
+  - name: stg_faculty
+    description: >
+      Staged faculty and staff data. Includes employment type, department
+      affiliation and academic rank. One row per faculty member.
+    columns:
+      - name: faculty_id
+        description: Unique surrogate identifier for a faculty member.
+      - name: first_name
+        description: Faculty member's first name.
+      - name: last_name
+        description: Faculty member's last name.
+      - name: full_name
+        description: Concatenated full name.
+      - name: email
+        description: Institutional email address.
+      - name: department_id
+        description: Foreign key to the primary department affiliation.
+      - name: rank
+        description: "Academic rank: Professor, Associate Professor, Assistant Professor, Lecturer, or Adjunct."
+      - name: employment_type
+        description: "Full-time or Part-time."
+      - name: hire_date
+        description: Date the faculty member was hired.
+      - name: salary
+        description: Annual salary in USD.
+      - name: specialization
+        description: Primary area of academic specialization or research focus.
+
+  - name: stg_quarters
+    description: >
+      Staged academic quarter definitions. Defines the date boundaries and
+      type of each quarter. One row per quarter.
+    columns:
+      - name: quarter_id
+        description: Unique surrogate identifier for a quarter.
+      - name: quarter_name
+        description: Human-readable name (e.g. Fall 2024, Spring 2025).
+      - name: quarter_type
+        description: "Quarter type: Fall, Spring, or Summer."
+      - name: academic_year
+        description: Academic year the quarter belongs to (e.g. 2024-2025).
+      - name: start_date
+        description: First day of classes.
+      - name: end_date
+        description: Last day of classes.
+      - name: is_current
+        description: Boolean flag; true for the quarter currently in progress.
+
+  - name: stg_assignments
+    description: >
+      Staged course assignment data. Each row is one graded activity
+      (homework, exam, project, etc.) within a course section.
+    columns:
+      - name: assignment_id
+        description: Unique surrogate identifier for an assignment.
+      - name: course_id
+        description: Foreign key to the course this assignment belongs to.
+      - name: quarter_id
+        description: Foreign key to the quarter when this assignment is due.
+      - name: assignment_type
+        description: "Category: homework, quiz, midterm, final, project, or participation."
+      - name: title
+        description: Descriptive title of the assignment.
+      - name: due_date
+        description: Date and time the assignment is due.
+      - name: max_points
+        description: Maximum points a student can earn on this assignment.
+      - name: weight
+        description: Percentage weight this assignment contributes to the final course grade.
+
+  - name: stg_assignment_submissions
+    description: >
+      Staged student submission records for each assignment. Captures score,
+      submission time and grading status. One row per student-assignment pair.
+    columns:
+      - name: submission_id
+        description: Unique surrogate identifier for a submission.
+      - name: assignment_id
+        description: Foreign key to the assignment being submitted.
+      - name: student_id
+        description: Foreign key to the student who submitted.
+      - name: submitted_at
+        description: Timestamp when the submission was made.
+      - name: score
+        description: Points awarded by the grader.
+      - name: is_late
+        description: Boolean flag indicating whether the submission was received after the due date.
+      - name: feedback
+        description: Free-text instructor feedback on the submission.
+      - name: graded_at
+        description: Timestamp when grading was completed.
+
+  - name: stg_class_sessions
+    description: >
+      Staged individual class session records. Each row represents one meeting
+      of a course (lecture, lab, etc.) and the associated attendance tracking.
+    columns:
+      - name: session_id
+        description: Unique surrogate identifier for a class session.
+      - name: course_id
+        description: Foreign key to the course this session belongs to.
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: faculty_id
+        description: Foreign key to the faculty member who led the session.
+      - name: session_date
+        description: Calendar date when the session occurred.
+      - name: session_type
+        description: "Type: lecture, lab, seminar, or office hours."
+      - name: duration_minutes
+        description: Length of the session in minutes.
+      - name: attendance_count
+        description: Number of students who attended this session.
+      - name: room
+        description: Classroom or location identifier.
+
+  - name: stg_extracurricular_activities
+    description: >
+      Staged student extracurricular activity records. Captures the activity name,
+      type, and participation hours per week. One row per activity participation.
+    columns:
+      - name: activity_id
+        description: Unique surrogate identifier for an extracurricular activity record.
+      - name: student_id
+        description: Foreign key to the student participating in the activity.
+      - name: activity_name
+        description: Name of the extracurricular activity.
+      - name: activity_type
+        description: Raw activity type from the source system.
+      - name: hours_per_week
+        description: Number of hours per week the student spends on the activity.
+      - name: academic_year
+        description: Academic year during which the student participated.
+      - name: start_date
+        description: Date the student started the activity.
+      - name: activity_category
+        description: "Derived category: Athletics, Arts, Academic, Community Service, or General Club."
+      - name: commitment_level
+        description: "Derived commitment level based on hours: High Commitment, Moderate Commitment, Low Commitment, or Minimal Commitment."
+      - name: start_year
+        description: Year extracted from start_date.
+      - name: created_at
+        description: Timestamp when the source record was created.
+
+  - name: stg_attendance_records
+    description: >
+      Staged student attendance records by quarter. Each row represents one
+      student's attendance summary for a given quarter, including excused and
+      unexcused absences and tardies.
+    columns:
+      - name: attendance_id
+        description: Unique surrogate identifier for an attendance record.
+      - name: student_id
+        description: Foreign key to the student.
+      - name: quarter_id
+        description: Foreign key to the quarter the attendance covers.
+      - name: attendance_percentage
+        description: Percentage of scheduled sessions the student attended (0–100).
+      - name: excused_absences
+        description: Number of excused absences during the quarter.
+      - name: unexcused_absences
+        description: Number of unexcused absences during the quarter.
+      - name: tardies
+        description: Number of tardies recorded during the quarter.
+      - name: total_absences
+        description: Sum of excused and unexcused absences.
+      - name: attendance_status
+        description: "Derived status based on attendance_percentage: Excellent (>=95), Good (>=90), Fair (>=80), Poor (>=70), or Critical (<70)."
+      - name: unexcused_category
+        description: "Derived unexcused absence category: No Unexcused Absences, Minimal Unexcused, Moderate Unexcused, or Chronic Unexcused."
+      - name: tardy_category
+        description: "Derived tardy category: No Tardies, Minimal Tardies, Moderate Tardies, or Chronic Tardies."
+      - name: created_at
+        description: Timestamp when the source record was created.

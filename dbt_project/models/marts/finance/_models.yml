@@ -1,0 +1,111 @@
+version: 2
+
+models:
+  - name: student_activity_profile
+    description: >
+      Student extracurricular activity participation and attendance summary.
+      Provides a single view of each student's engagement in activities and
+      their attendance patterns used for counseling and program planning.
+    columns:
+      - name: student_id
+        description: Unique student identifier; grain is one row per student.
+      - name: total_activities
+        description: Total number of distinct extracurricular activities the student participates in.
+      - name: total_weekly_activity_hours
+        description: Sum of hours per week across all activities.
+      - name: avg_attendance_rate
+        description: Average attendance percentage across all recorded quarters.
+      - name: engagement_level
+        description: "Derived engagement level: Highly Engaged, Moderately Engaged, Minimally Engaged, or Not Engaged."
+      - name: attendance_rating
+        description: "Derived attendance rating: Excellent, Good, Fair, or Poor Attendance."
+      - name: primary_activity_focus
+        description: "Category where the student spends the most activity hours: Athletics Focus, Arts Focus, Academic Clubs Focus, or No Primary Activity."
+
+  - name: attendance_analytics
+    description: >
+      Attendance rate trends and intervention analysis by quarter and department.
+      Tracks average attendance, absence patterns and at-risk student counts
+      to support early intervention planning.
+    columns:
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: department_name
+        description: Name of the academic department.
+      - name: students_tracked
+        description: Number of distinct students with attendance records in this quarter and department.
+      - name: avg_attendance_rate
+        description: Average attendance percentage across all students in the group.
+      - name: at_risk_attendance_rate
+        description: Percentage of students with attendance below 80%.
+      - name: intervention_priority
+        description: "Derived priority level: High, Moderate, Low, or Minimal Intervention Need."
+      - name: department_attendance_category
+        description: "Categorisation of department attendance: High, Good, Average, or Low Attendance Department."
+
+  - name: extracurricular_impact_analysis
+    description: >
+      Impact of extracurricular participation on student academic performance.
+      Compares outcomes between active participants and non-participants
+      to evaluate programme effectiveness by department.
+    columns:
+      - name: student_id
+        description: Unique student identifier.
+      - name: total_activities
+        description: Number of extracurricular activities the student participates in.
+      - name: is_active_participant
+        description: Flag indicating whether the student participates in any extracurricular activity.
+      - name: involvement_level
+        description: "Derived involvement level: Highly Involved, Moderately Involved, Minimally Involved, or Not Involved."
+      - name: performance_activity_category
+        description: Combined GPA and participation category for each student.
+      - name: dept_participation_performance_comparison
+        description: "Whether participants or non-participants show higher GPA within the department: Participants Outperform, Non-Participants Outperform, or Similar Performance."
+
+  - name: program_participation_analysis
+    description: >
+      Program engagement and participation analysis by department and quarter.
+      Measures extracurricular participation rates, attendance, and staffing
+      to identify program health and intervention needs.
+    columns:
+      - name: quarter_id
+        description: Foreign key to the quarter.
+      - name: department_id
+        description: Foreign key to the academic department.
+      - name: activity_participation_rate
+        description: Percentage of enrolled students who participate in extracurricular activities.
+      - name: avg_attendance_rate
+        description: Average student attendance rate for the department in the quarter.
+      - name: program_health_status
+        description: "Overall program health: Thriving, Performing Well, Needs Attention, or Intervention Required."
+      - name: engagement_category
+        description: "Engagement level: High, Moderate, Low Engagement Program, or Disengaged Program."
+      - name: primary_recommendation
+        description: Primary strategic recommendation for the program based on current metrics.
+
+  - name: resource_allocation_analysis
+    description: >
+      Department resource allocation efficiency and optimization recommendations.
+      Measures cost-effectiveness using graduate production, student outcomes,
+      and activity engagement as value drivers.
+    columns:
+      - name: department_id
+        description: Foreign key to the academic department.
+      - name: allocated_budget
+        description: Total budget allocated to the department.
+      - name: cost_per_student
+        description: Allocated budget divided by number of students.
+      - name: cost_per_graduate
+        description: Allocated budget divided by graduates produced.
+      - name: activity_participation_rate
+        description: Percentage of department students engaged in extracurricular activities.
+      - name: resource_optimization_score
+        description: Composite score (0-100) based on cost effectiveness, quality output, graduate productivity, and engagement.
+      - name: strategic_priority
+        description: "Strategic investment priority: Strategic Growth Investment, Restructuring Priority, Quality Improvement Priority, Viability Assessment Required, or Efficiency Optimization."
+      - name: suggested_budget_allocation
+        description: Recommended budget allocation based on the resource optimization score.
+      - name: budget_change_amount
+        description: Difference between suggested and current budget allocation.
+      - name: budget_change_percentage
+        description: Percentage change between suggested and current budget allocation.

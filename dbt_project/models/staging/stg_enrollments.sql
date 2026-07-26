@@ -5,13 +5,13 @@ with source_data as (
         enrollment_id,
         student_id,
         course_id,
-        semester_id,
+        quarter_id,
         enrollment_date,
         completion_date,
         grade,
         grade_points,
         attendance_percentage,
-        case
+        case 
             when grade in ('A+', 'A', 'A-') then 'Excellent'
             when grade in ('B+', 'B', 'B-') then 'Good'
             when grade in ('C+', 'C', 'C-') then 'Satisfactory'

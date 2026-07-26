@@ -12,7 +12,7 @@ D+,1.3,67,69,Poor Plus
 D,1.0,63,66,Poor
 D-,0.7,60,62,Poor Minus
 F,0.0,0,59,Failing
-W,,,,Withdrawn
-I,,,,Incomplete
-P,,,,Pass
-NP,,,,No Pass
+W,null,null,null,Withdrawn
+I,null,null,null,Incomplete
+P,null,null,null,Pass
+NP,null,null,null,No Pass

@@ -3,7 +3,7 @@
 with faculty_dashboard as (
     select
         f.faculty_id,
-        f.full_name,
+        f.faculty_name,
         f.position,
         f.salary,
         f.years_of_service,
@@ -11,7 +11,7 @@ with faculty_dashboard as (
         f.department_name,
         f.department_code,
         f.unique_courses_taught,
-        f.semesters_active,
+        f.quarters_active,
         f.total_class_sessions,
         f.total_students_taught,
         f.avg_class_attendance,
@@ -24,13 +24,13 @@ with faculty_dashboard as (
         f.morning_sessions,
         f.afternoon_sessions,
         f.evening_sessions,
-        da.avg_faculty_salary        as dept_avg_salary,
-        da.student_faculty_ratio     as dept_student_faculty_ratio,
+        da.avg_faculty_salary as dept_avg_salary,
+        da.student_faculty_ratio as dept_student_faculty_ratio,
         round(f.salary / nullif(da.avg_faculty_salary, 0) * 100, 2) as salary_vs_dept_avg_percent,
         case
             when f.total_students_taught >= 200 then 'High Impact Teacher'
             when f.total_students_taught >= 100 then 'Moderate Impact Teacher'
-            when f.total_students_taught >= 50  then 'Standard Impact Teacher'
+            when f.total_students_taught >= 50 then 'Standard Impact Teacher'
             else 'Limited Impact Teacher'
         end as teaching_impact_category,
         case
@@ -42,10 +42,10 @@ with faculty_dashboard as (
         case
             when f.years_of_service >= 15 then 'Senior Faculty'
             when f.years_of_service >= 10 then 'Experienced Faculty'
-            when f.years_of_service >= 5  then 'Mid-Career Faculty'
+            when f.years_of_service >= 5 then 'Mid-Career Faculty'
             else 'Junior Faculty'
         end as career_stage,
-        round(f.total_students_taught::numeric / nullif(f.semesters_active, 0), 2) as avg_students_per_semester
+        round(f.total_students_taught::numeric / nullif(f.quarters_active, 0), 2) as avg_students_per_quarter
     from {{ ref('int_faculty_teaching_load') }} f
     left join {{ ref('int_department_analytics') }} da on f.department_id = da.department_id
 )

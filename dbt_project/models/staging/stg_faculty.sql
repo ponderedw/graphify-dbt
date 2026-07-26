@@ -14,7 +14,7 @@ with source_data as (
         office_number,
         research_interests,
         extract(year from age(current_date, hire_date)) as years_of_service,
-        case
+        case 
             when position = 'Professor' then 4
             when position = 'Associate Professor' then 3
             when position = 'Assistant Professor' then 2

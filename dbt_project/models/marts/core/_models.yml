@@ -1,0 +1,215 @@
+version: 2
+
+models:
+  - name: student_academic_summary
+    description: >
+      Complete academic profile for each student. Combines staged student data
+      with cumulative enrollment history, major department details and credit
+      progress. The primary student-facing analytical table used for advising,
+      retention dashboards and graduation audits.
+    columns:
+      - name: student_id
+        description: Unique student identifier; grain is one row per student.
+      - name: full_name
+        description: Student's full name.
+      - name: email
+        description: Institutional email address.
+      - name: age
+        description: Current age in years.
+      - name: years_enrolled
+        description: Number of years since initial enrollment.
+      - name: student_status
+        description: Raw enrollment status from the source system.
+      - name: gpa
+        description: Cumulative grade point average on a 4.0 scale.
+      - name: academic_standing
+        description: "Derived GPA-based standing: Dean's List, Good Standing, Academic Warning, or Academic Probation."
+      - name: current_status
+        description: Human-readable enrolment status (Graduated, Active, At Risk, etc.).
+      - name: major_department
+        description: Name of the department for the student's declared major.
+      - name: major_code
+        description: Short code of the major department.
+      - name: total_enrollments
+        description: Total course enrollments across all quarters.
+      - name: total_credits_attempted
+        description: Total credit hours attempted.
+      - name: total_credits_earned
+        description: Total credit hours earned with passing grades.
+      - name: failed_courses_count
+        description: Number of courses with a failing grade.
+      - name: withdrawn_courses_count
+        description: Number of courses from which the student withdrew.
+      - name: avg_grade_points
+        description: Average numeric grade points across all completed courses.
+      - name: avg_attendance
+        description: Average attendance rate (0–100) across all courses.
+      - name: completion_rate
+        description: Percentage of attempted credits that were earned (0–100).
+      - name: class_standing
+        description: "Credit-based standing: Freshman, Sophomore, Junior, Senior, or Graduation Ready."
+      - name: progress_indicator
+        description: "Overall progress health: Excellent Progress, Good Progress, At Risk, or Critical Status."
+
+  - name: course_catalog_enhanced
+    description: >
+      Enriched course catalog combining the base course data with aggregated
+      performance metrics (average grade, pass rate, typical enrollment) across
+      all historical quarters. Used by school leaders and students for course selection.
+    columns:
+      - name: course_id
+        description: Unique course identifier.
+      - name: course_code
+        description: Institutional course code.
+      - name: course_name
+        description: Full course name.
+      - name: department_name
+        description: Name of the owning department.
+      - name: credits
+        description: Credit hours awarded on completion.
+      - name: description
+        description: Catalog description of the course content.
+      - name: avg_pass_rate
+        description: Historical average pass rate across all offerings.
+      - name: avg_grade_points
+        description: Historical average grade points across all offerings.
+      - name: avg_enrollment
+        description: Average number of students enrolled per quarter offering.
+      - name: times_offered
+        description: Total number of quarters the course has been offered.
+
+  - name: department_efficiency_report
+    description: >
+      Department-level efficiency and cost-effectiveness report. Aggregates
+      credit-hour production, faculty load, pass rates and budget utilisation.
+      Supports academic resource planning and accreditation reporting.
+    columns:
+      - name: department_id
+        description: Unique department identifier.
+      - name: department_name
+        description: Full department name.
+      - name: total_credit_hours_produced
+        description: Total credit hours earned by students in department courses this year.
+      - name: avg_class_size
+        description: Average enrollment per course section.
+      - name: faculty_count
+        description: Number of active faculty in the department.
+      - name: cost_per_credit_hour
+        description: Annual budget divided by total credit hours produced.
+      - name: avg_pass_rate
+        description: Average course pass rate across all department courses.
+      - name: student_satisfaction_index
+        description: Composite index derived from grade outcomes and retention metrics.
+
+  - name: faculty_performance_dashboard
+    description: >
+      Faculty effectiveness metrics combining teaching load, student grade
+      outcomes and attendance in faculty-taught courses. Used for annual
+      performance reviews and merit decisions.
+    columns:
+      - name: faculty_id
+        description: Unique faculty identifier.
+      - name: full_name
+        description: Faculty member's full name.
+      - name: department_name
+        description: Primary department affiliation.
+      - name: rank
+        description: Academic rank.
+      - name: sections_taught_ytd
+        description: Sections taught year-to-date.
+      - name: total_students_taught
+        description: Distinct students taught year-to-date.
+      - name: avg_student_grade
+        description: Average grade points across all students in faculty-taught courses.
+      - name: avg_pass_rate
+        description: Average pass rate across faculty-taught courses.
+      - name: avg_student_attendance
+        description: Average attendance rate in faculty-led sessions.
+      - name: effectiveness_score
+        description: Composite score (0–100) combining grade outcomes, pass rates and attendance.
+
+  - name: graduation_pathway_analysis
+    description: >
+      Analysis of graduation pathways, time-to-degree metrics and completion
+      rates by cohort and major. Supports strategic enrollment management and
+      curriculum planning.
+    columns:
+      - name: cohort_year
+        description: Year the student cohort first enrolled.
+      - name: department_id
+        description: Major department.
+      - name: total_students
+        description: Number of students in this cohort-department combination.
+      - name: graduated_count
+        description: Number who have graduated.
+      - name: avg_time_to_degree_years
+        description: Average years from first enrollment to graduation.
+      - name: on_time_graduation_rate
+        description: Fraction graduating within the standard program length.
+      - name: exit_rate
+        description: Fraction who left without graduating.
+
+  - name: institutional_effectiveness_dashboard
+    description: >
+      Top-level institutional effectiveness metrics aggregated across all
+      departments, faculty and students. Used by senior leadership for
+      strategic planning and accreditation reporting.
+    columns:
+      - name: snapshot_date
+        description: Date of the metrics snapshot.
+      - name: total_active_students
+        description: Total students with active enrollment status.
+      - name: overall_gpa
+        description: Institution-wide average GPA.
+      - name: overall_retention_rate
+        description: Fraction of students returning from the prior quarter.
+      - name: total_credit_hours_this_quarter
+        description: Credit hours enrolled this quarter.
+      - name: avg_faculty_load
+        description: Average sections per full-time faculty member.
+      - name: budget_utilisation_pct
+        description: Total expenditure as a percentage of annual budget.
+
+  - name: institutional_kpi_dashboard
+    description: >
+      Key performance indicators for executive and board-level reporting.
+      Combines enrollment health, attendance metrics, academic quality
+      and student success metrics into a single consolidated view.
+    columns:
+      - name: kpi_period
+        description: Academic year or quarter the KPIs apply to.
+      - name: enrollment_growth_pct
+        description: Year-over-year change in total enrollment.
+      - name: avg_attendance_rate
+        description: Average student attendance rate across all recorded quarters.
+      - name: activity_participation_rate
+        description: Fraction of students participating in extracurricular activities.
+      - name: student_success_index
+        description: Composite index combining GPA trends, retention and graduation rates.
+      - name: faculty_student_ratio
+        description: Number of students per full-time equivalent faculty member.
+
+  - name: academic_early_warning_system
+    description: >
+      Student risk flags and intervention recommendations. Combines GPA,
+      attendance, assignment submission and academic engagement indicators to identify
+      students who need academic support before they exit or transfer out.
+    columns:
+      - name: student_id
+        description: Unique student identifier.
+      - name: full_name
+        description: Student's full name.
+      - name: risk_score
+        description: Composite risk score from 0 (no risk) to 100 (critical).
+      - name: risk_level
+        description: "Categorical risk level: Low, Medium, High, or Critical."
+      - name: low_gpa_flag
+        description: True if GPA is below the minimum satisfactory academic progress threshold.
+      - name: low_attendance_flag
+        description: True if current quarter attendance is below 75%.
+      - name: failing_course_count
+        description: Number of courses currently at failing grade.
+      - name: assessment_score_flag
+        description: True if the student has an unresolved financial hold.
+      - name: recommended_intervention
+        description: Suggested intervention type (academic advising, financial counseling, tutoring, etc.).

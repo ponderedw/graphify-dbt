@@ -1,4 +1,5 @@
-dbt_project/target
+dbt_project/target/*
+!dbt_project/target/manifest.json
 dbt_project/logs
 graphify-out/
 dist/
