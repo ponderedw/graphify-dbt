@@ -31,11 +31,11 @@ with institutional_metrics as (
         -- Attendance and engagement metrics
         round(avg(ar.attendance_percentage), 2) as avg_student_attendance_rate,
         count(distinct ea.student_id) as students_in_activities,
-        sum(f.salary) as total_faculty_compensation,
+        sum(f.salary) as total_teacher_compensation,
 
         -- Operational efficiency
         round(count(distinct e.enrollment_id)::numeric / nullif(count(distinct f.faculty_id), 0), 2) as enrollments_per_faculty,
-        round(count(distinct e.student_id)::numeric / nullif(count(distinct f.faculty_id), 0), 2) as students_per_faculty,
+        round(count(distinct e.student_id)::numeric / nullif(count(distinct f.faculty_id), 0), 2) as students_per_teacher,
         round(
             count(distinct ea.student_id) * 100.0 / nullif(count(distinct e.student_id), 0), 2
         ) as activity_participation_rate
@@ -44,7 +44,7 @@ with institutional_metrics as (
     left join {{ ref('stg_courses') }} c on e.course_id = c.course_id
     left join {{ ref('stg_students') }} s on e.student_id = s.student_id
     left join {{ ref('stg_class_sessions') }} cs on c.course_id = cs.course_id and sem.quarter_id = cs.quarter_id
-    left join {{ ref('stg_faculty') }} f on cs.faculty_id = f.faculty_id
+    left join {{ ref('stg_teachers') }} f on cs.faculty_id = f.faculty_id
     left join {{ ref('stg_attendance_records') }} ar on s.student_id = ar.student_id and sem.quarter_id = ar.quarter_id
     left join {{ ref('stg_extracurricular_activities') }} ea on s.student_id = ea.student_id
     group by sem.quarter_id, sem.quarter_name, sem.academic_year, sem.quarter_type
@@ -97,9 +97,9 @@ effectiveness_scoring as (
         
         -- Operational efficiency score (0-100)
         round(
-            (case when students_per_faculty between 15 and 25 then 30
-                  when students_per_faculty between 10 and 30 then 25
-                  when students_per_faculty between 8 and 35 then 20
+            (case when students_per_teacher between 15 and 25 then 30
+                  when students_per_teacher between 10 and 30 then 25
+                  when students_per_teacher between 8 and 35 then 20
                   else 15 end) +
             (case when activity_participation_rate >= 60 then 25
                   when activity_participation_rate >= 40 then 20
@@ -208,9 +208,9 @@ strategic_recommendations as (
         -- Key performance indicators status
         case
             when institutional_pass_rate >= 80 and
-                 students_per_faculty between 15 and 25 and
+                 students_per_teacher between 15 and 25 and
                  avg_student_attendance_rate >= 90 then 'All KPIs Met'
-            when institutional_pass_rate < 70 or students_per_faculty > 30 or avg_student_attendance_rate < 80 then 'Critical KPIs Not Met'
+            when institutional_pass_rate < 70 or students_per_teacher > 30 or avg_student_attendance_rate < 80 then 'Critical KPIs Not Met'
             else 'Some KPIs Need Attention'
         end as kpi_status
     from comparative_analysis ca

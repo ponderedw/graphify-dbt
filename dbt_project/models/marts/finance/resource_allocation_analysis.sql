@@ -8,11 +8,11 @@ with departmental_data as (
         d.budget as allocated_budget,
         d.budget_millions,
         d.department_size,
-        count(distinct f.faculty_id) as faculty_count,
+        count(distinct f.faculty_id) as staff_count,
         count(distinct s.student_id) as student_count,
         count(distinct c.course_id) as course_offerings,
-        sum(f.salary) as total_faculty_salaries,
-        avg(f.salary) as avg_faculty_salary,
+        sum(f.salary) as total_teacher_salaries,
+        avg(f.salary) as avg_teacher_salary,
         count(distinct e.enrollment_id) as total_enrollments,
         avg(e.grade_points) as dept_avg_gpa,
         count(case when s.student_status = 'graduated' then 1 end) as graduates_produced,
@@ -20,7 +20,7 @@ with departmental_data as (
         count(distinct ea.student_id) as students_with_activities,
         round(avg(ar.attendance_percentage), 2) as dept_avg_attendance_record
     from {{ ref('stg_departments') }} d
-    left join {{ ref('stg_faculty') }} f on d.department_id = f.department_id
+    left join {{ ref('stg_teachers') }} f on d.department_id = f.department_id
     left join {{ ref('stg_courses') }} c on d.department_id = c.department_id
     left join {{ ref('stg_students') }} s on d.department_id = s.major_id
     left join {{ ref('stg_enrollments') }} e on c.course_id = e.course_id and s.student_id = e.student_id
@@ -35,11 +35,11 @@ efficiency_analysis as (
     select
         dd.*,
         round(allocated_budget / nullif(student_count, 0), 2) as cost_per_student,
-        round(allocated_budget / nullif(faculty_count, 0), 2) as cost_per_faculty,
+        round(allocated_budget / nullif(staff_count, 0), 2) as cost_per_teacher,
         round(allocated_budget / nullif(graduates_produced, 0), 2) as cost_per_graduate,
         round(allocated_budget / nullif(total_enrollments, 0), 2) as cost_per_enrollment,
-        round(total_faculty_salaries / nullif(allocated_budget, 0) * 100, 2) as faculty_cost_percentage,
-        round(student_count / nullif(faculty_count, 0), 2) as student_faculty_ratio,
+        round(total_teacher_salaries / nullif(allocated_budget, 0) * 100, 2) as teacher_cost_percentage,
+        round(student_count / nullif(staff_count, 0), 2) as student_teacher_ratio,
         round(total_enrollments / nullif(course_offerings, 0), 2) as avg_class_size,
         round(students_with_activities * 100.0 / nullif(student_count, 0), 2) as activity_participation_rate,
         round(graduates_produced / nullif(allocated_budget, 0) * 100000, 2) as graduates_per_100k_budget,
@@ -56,7 +56,7 @@ performance_benchmarking as (
         percent_rank() over (order by activity_participation_rate desc) as engagement_percentile,
         avg(cost_per_student) over () as institutional_avg_cost_per_student,
         avg(dept_avg_gpa) over () as institutional_avg_gpa,
-        avg(student_faculty_ratio) over () as institutional_avg_ratio,
+        avg(student_teacher_ratio) over () as institutional_avg_ratio,
         case
             when cost_per_graduate <= 50000 then 'Highly Cost Effective'
             when cost_per_graduate <= 100000 then 'Cost Effective'
@@ -101,10 +101,10 @@ optimization_scores as (
         ) as resource_optimization_score,
         case
             when cost_per_graduate > 150000 and dept_avg_gpa < 3.0 then 'Improve academic support for better retention'
-            when faculty_cost_percentage > 80 then 'Review faculty compensation structure'
+            when teacher_cost_percentage > 80 then 'Review faculty compensation structure'
             when student_count < 100 and allocated_budget > 1000000 then 'Consider program consolidation or growth'
             when activity_participation_rate < 30 then 'Expand extracurricular programs to improve engagement'
-            when student_faculty_ratio < 12 then 'Consider course consolidation or increased teaching load'
+            when student_teacher_ratio < 12 then 'Consider course consolidation or increased teaching load'
             when quality_weighted_output > 50 then 'Model department — consider expansion'
             else 'Minor optimizations recommended'
         end as primary_optimization_recommendation,

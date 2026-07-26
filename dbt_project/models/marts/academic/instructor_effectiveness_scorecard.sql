@@ -3,7 +3,7 @@
 with instructor_metrics as (
     select
         f.faculty_id,
-        f.faculty_name,
+        f.teacher_name,
         f.position,
         f.department_name,
         f.years_of_service,
@@ -22,8 +22,8 @@ with instructor_metrics as (
         ap.avg_percentage_score as avg_assignment_performance,
         ap.late_submission_rate as avg_late_submission_rate,
         ap.grading_completion_rate as avg_grading_completion_rate
-    from {{ ref('int_faculty_teaching_load') }} f
-    left join {{ ref('int_faculty_student_interactions') }} fsi 
+    from {{ ref('int_teacher_teaching_load') }} f
+    left join {{ ref('int_teacher_student_interactions') }} fsi 
         on f.faculty_id = fsi.faculty_id
     left join (
         select

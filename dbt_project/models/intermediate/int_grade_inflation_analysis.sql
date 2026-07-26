@@ -15,7 +15,7 @@ with historical_grades as (
         sem.quarter_type,
         extract(year from sem.start_date) as year,
         f.faculty_id,
-        f.full_name as faculty_name,
+        f.full_name as teacher_name,
         f.years_of_service,
         case
             when e.grade in ('A+', 'A', 'A-') then 'A Range'
@@ -30,7 +30,7 @@ with historical_grades as (
     inner join {{ ref('stg_departments') }} d on c.department_id = d.department_id
     inner join {{ ref('stg_quarters') }} sem on e.quarter_id = sem.quarter_id
     left join {{ ref('stg_class_sessions') }} cs on c.course_id = cs.course_id and e.quarter_id = cs.quarter_id
-    left join {{ ref('stg_faculty') }} f on cs.faculty_id = f.faculty_id
+    left join {{ ref('stg_teachers') }} f on cs.faculty_id = f.faculty_id
     where e.grade is not null and e.grade != 'W'
 ),
 
@@ -89,17 +89,17 @@ department_trends as (
 faculty_grade_patterns as (
     select
         faculty_id,
-        faculty_name,
+        teacher_name,
         years_of_service,
         department_name,
         count(distinct course_id) as courses_taught,
-        avg(grade_points) as faculty_avg_grade,
-        round(count(case when grade_range = 'A Range' then 1 end) * 100.0 / count(*), 2) as faculty_a_percentage,
-        round(count(case when grade_range = 'F' then 1 end) * 100.0 / count(*), 2) as faculty_f_percentage,
-        stddev(grade_points) as faculty_grade_variance
+        avg(grade_points) as teacher_avg_grade,
+        round(count(case when grade_range = 'A Range' then 1 end) * 100.0 / count(*), 2) as teacher_a_percentage,
+        round(count(case when grade_range = 'F' then 1 end) * 100.0 / count(*), 2) as teacher_f_percentage,
+        stddev(grade_points) as teacher_grade_variance
     from historical_grades
     where faculty_id is not null
-    group by faculty_id, faculty_name, years_of_service, department_name
+    group by faculty_id, teacher_name, years_of_service, department_name
     having count(*) >= 20  -- Only faculty with sufficient grading history
 ),
 
@@ -137,9 +137,9 @@ inflation_indicators as (
 
 select 
     ii.*,
-    fgp.faculty_avg_grade,
-    fgp.faculty_a_percentage,
-    fgp.faculty_grade_variance,
+    fgp.teacher_avg_grade,
+    fgp.teacher_a_percentage,
+    fgp.teacher_grade_variance,
     case
         when ii.avg_gpa > ii.dept_avg_gpa * 1.1 then 'Above Department Average'
         when ii.avg_gpa < ii.dept_avg_gpa * 0.9 then 'Below Department Average'

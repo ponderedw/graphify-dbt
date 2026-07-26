@@ -12,19 +12,19 @@ with source_data as (
         salary,
         hire_date,
         office_number,
-        research_interests,
+        research_interests as teaching_specialties,
         extract(year from age(current_date, hire_date)) as years_of_service,
-        case 
-            when position = 'Professor' then 4
-            when position = 'Associate Professor' then 3
-            when position = 'Assistant Professor' then 2
-            when position = 'Lecturer' then 1
+        case
+            when position = 'Department Head' then 4
+            when position = 'Senior Teacher' then 3
+            when position = 'Teacher' then 2
+            when position = 'Substitute' then 1
             else 0
         end as rank_level,
         case
-            when salary >= 100000 then 'Senior'
-            when salary >= 80000 then 'Mid-level'
-            when salary >= 60000 then 'Junior'
+            when salary >= 80000 then 'Senior'
+            when salary >= 65000 then 'Mid-level'
+            when salary >= 50000 then 'Junior'
             else 'Entry'
         end as salary_band,
         created_at

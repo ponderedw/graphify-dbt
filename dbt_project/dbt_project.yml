@@ -184,11 +184,11 @@ on-run-start: |-
         ('Engineering', 'ENG', 4000000.00, 'Engineering Complex');
 
     INSERT INTO raw_edu.faculty (first_name, last_name, email, department_id, position, salary, hire_date, office_number) VALUES
-        ('John', 'Smith', 'j.smith@edu.edu', 1, 'Professor', 95000.00, '2015-08-15', 'TA-201'),
-        ('Sarah', 'Johnson', 's.johnson@edu.edu', 1, 'Associate Professor', 78000.00, '2018-01-10', 'TA-205'),
-        ('Michael', 'Brown', 'm.brown@edu.edu', 2, 'Professor', 89000.00, '2012-09-01', 'SH-301'),
-        ('Emily', 'Davis', 'e.davis@edu.edu', 3, 'Assistant Professor', 72000.00, '2020-08-20', 'BC-401'),
-        ('Robert', 'Wilson', 'r.wilson@edu.edu', 5, 'Professor', 105000.00, '2010-01-15', 'EC-101');
+        ('John', 'Smith', 'j.smith@edu.edu', 1, 'Department Head', 95000.00, '2015-08-15', 'TA-201'),
+        ('Sarah', 'Johnson', 's.johnson@edu.edu', 1, 'Senior Teacher', 78000.00, '2018-01-10', 'TA-205'),
+        ('Michael', 'Brown', 'm.brown@edu.edu', 2, 'Department Head', 89000.00, '2012-09-01', 'SH-301'),
+        ('Emily', 'Davis', 'e.davis@edu.edu', 3, 'Teacher', 72000.00, '2020-08-20', 'BC-401'),
+        ('Robert', 'Wilson', 'r.wilson@edu.edu', 5, 'Department Head', 105000.00, '2010-01-15', 'EC-101');
 
     INSERT INTO raw_edu.quarters (quarter_name, academic_year, start_date, end_date, is_current) VALUES
         ('Fall 2023', '2023-2024', '2023-08-28', '2023-12-15', false),

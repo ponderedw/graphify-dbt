@@ -27,7 +27,7 @@ with course_enrollments as (
     left join {{ ref('stg_departments') }} d on c.department_id = d.department_id
     left join {{ ref('stg_quarters') }} sem on e.quarter_id = sem.quarter_id
     left join {{ ref('stg_class_sessions') }} cs on c.course_id = cs.course_id and sem.quarter_id = cs.quarter_id
-    left join {{ ref('stg_faculty') }} f on cs.faculty_id = f.faculty_id
+    left join {{ ref('stg_teachers') }} f on cs.faculty_id = f.faculty_id
 ),
 
 course_metrics as (

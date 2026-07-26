@@ -3,7 +3,7 @@
 with faculty_dashboard as (
     select
         f.faculty_id,
-        f.faculty_name,
+        f.teacher_name,
         f.position,
         f.salary,
         f.years_of_service,
@@ -24,9 +24,9 @@ with faculty_dashboard as (
         f.morning_sessions,
         f.afternoon_sessions,
         f.evening_sessions,
-        da.avg_faculty_salary as dept_avg_salary,
-        da.student_faculty_ratio as dept_student_faculty_ratio,
-        round(f.salary / nullif(da.avg_faculty_salary, 0) * 100, 2) as salary_vs_dept_avg_percent,
+        da.avg_teacher_salary as dept_avg_salary,
+        da.student_teacher_ratio as dept_student_teacher_ratio,
+        round(f.salary / nullif(da.avg_teacher_salary, 0) * 100, 2) as salary_vs_dept_avg_percent,
         case
             when f.total_students_taught >= 200 then 'High Impact Teacher'
             when f.total_students_taught >= 100 then 'Moderate Impact Teacher'
@@ -46,7 +46,7 @@ with faculty_dashboard as (
             else 'Junior Faculty'
         end as career_stage,
         round(f.total_students_taught::numeric / nullif(f.quarters_active, 0), 2) as avg_students_per_quarter
-    from {{ ref('int_faculty_teaching_load') }} f
+    from {{ ref('int_teacher_teaching_load') }} f
     left join {{ ref('int_department_analytics') }} da on f.department_id = da.department_id
 )
 

@@ -42,7 +42,7 @@ room_efficiency_metrics as (
 faculty_resource_allocation as (
     select
         f.faculty_id,
-        f.full_name as faculty_name,
+        f.full_name as teacher_name,
         f.position,
         f.salary,
         f.years_of_service,
@@ -56,7 +56,7 @@ faculty_resource_allocation as (
         sum(cs.attendance_count) as total_student_contact_hours,
         round(f.salary / nullif(sum(cs.attendance_count), 0), 2) as cost_per_student_contact_hour,
         round(f.salary / nullif(sum(c.credits), 0), 2) as cost_per_credit_hour_taught
-    from {{ ref('stg_faculty') }} f
+    from {{ ref('stg_teachers') }} f
     inner join {{ ref('stg_departments') }} d on f.department_id = d.department_id
     left join {{ ref('stg_class_sessions') }} cs on f.faculty_id = cs.faculty_id
     left join {{ ref('stg_courses') }} c on cs.course_id = c.course_id
@@ -92,20 +92,20 @@ financial_resource_efficiency as (
         d.department_name,
         d.budget,
         d.department_size,
-        count(distinct f.faculty_id) as faculty_count,
+        count(distinct f.faculty_id) as staff_count,
         count(distinct s.student_id) as student_count,
         count(distinct c.course_id) as course_count,
-        sum(f.salary) as total_faculty_costs,
+        sum(f.salary) as total_teacher_costs,
         round(avg(ar.attendance_percentage), 2) as avg_attendance_rate,
         count(distinct ea.student_id) as students_with_activities,
         round(d.budget / nullif(count(distinct s.student_id), 0), 2) as budget_per_student,
-        round(d.budget / nullif(count(distinct f.faculty_id), 0), 2) as budget_per_faculty,
+        round(d.budget / nullif(count(distinct f.faculty_id), 0), 2) as budget_per_teacher,
         round(
             count(distinct ea.student_id) * 100.0 / nullif(count(distinct s.student_id), 0), 2
         ) as activity_participation_rate,
-        round(sum(f.salary) / nullif(d.budget, 0) * 100, 2) as faculty_cost_percentage
+        round(sum(f.salary) / nullif(d.budget, 0) * 100, 2) as teacher_cost_percentage
     from {{ ref('stg_departments') }} d
-    left join {{ ref('stg_faculty') }} f on d.department_id = f.department_id
+    left join {{ ref('stg_teachers') }} f on d.department_id = f.department_id
     left join {{ ref('stg_students') }} s on d.department_id = s.major_id
     left join {{ ref('stg_courses') }} c on d.department_id = c.department_id
     left join {{ ref('stg_attendance_records') }} ar on s.student_id = ar.student_id
@@ -129,7 +129,7 @@ resource_optimization_analysis as (
         end as room_utilization_category,
         
         fra.faculty_id,
-        fra.faculty_name,
+        fra.teacher_name,
         fra.department_name,
         fra.cost_per_student_contact_hour,
         fra.cost_per_credit_hour_taught,
@@ -140,7 +140,7 @@ resource_optimization_analysis as (
             when fra.cost_per_student_contact_hour <= 100 then 'Efficient'
             when fra.cost_per_student_contact_hour <= 200 then 'Moderately Efficient'
             else 'Inefficient'
-        end as faculty_efficiency_category,
+        end as teacher_efficiency_category,
         
         tau.course_id as tech_course_id,
         tau.total_submission_volume,
@@ -154,7 +154,7 @@ resource_optimization_analysis as (
         
         fre.department_id as finance_dept_id,
         fre.activity_participation_rate,
-        fre.faculty_cost_percentage,
+        fre.teacher_cost_percentage,
         fre.budget_per_student,
         case
             when fre.activity_participation_rate >= 60 then 'Highly Engaged'
@@ -181,11 +181,11 @@ comprehensive_utilization_score as (
         end as room_score,
         -- Faculty efficiency score (0-25)
         case
-            when faculty_efficiency_category = 'Highly Efficient' then 25
-            when faculty_efficiency_category = 'Efficient' then 20
-            when faculty_efficiency_category = 'Moderately Efficient' then 15
+            when teacher_efficiency_category = 'Highly Efficient' then 25
+            when teacher_efficiency_category = 'Efficient' then 20
+            when teacher_efficiency_category = 'Moderately Efficient' then 15
             else 10
-        end as faculty_score,
+        end as teacher_score,
         -- Technology utilization score (0-25)
         case
             when assignment_management_category = 'Excellent Assignment Management' then 25
@@ -204,7 +204,7 @@ comprehensive_utilization_score as (
         -- Overall utilization recommendations
         case
             when avg_capacity_utilization < 45 then 'Optimize room scheduling and capacity'
-            when faculty_efficiency_category = 'Inefficient' then 'Review faculty workload and compensation'
+            when teacher_efficiency_category = 'Inefficient' then 'Review faculty workload and compensation'
             when assignment_management_category = 'Poor Assignment Management' then 'Improve assignment workflow processes'
             when engagement_category = 'Disengaged' then 'Expand extracurricular programs to improve engagement'
             else 'Continue monitoring and minor optimizations'
@@ -216,6 +216,6 @@ comprehensive_utilization_score as (
 
 select 
     *,
-    room_score + faculty_score + technology_score + financial_score as total_utilization_score
+    room_score + teacher_score + technology_score + financial_score as total_utilization_score
 from comprehensive_utilization_score
 order by total_utilization_score desc

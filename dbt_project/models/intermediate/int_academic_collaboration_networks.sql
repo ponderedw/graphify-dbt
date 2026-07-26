@@ -95,17 +95,17 @@ faculty_collaboration_networks as (
     select
         f1.faculty_id as faculty_a,
         f2.faculty_id as faculty_b,
-        f1.full_name as faculty_a_name,
-        f2.full_name as faculty_b_name,
-        d1.department_name as faculty_a_dept,
-        d2.department_name as faculty_b_dept,
+        f1.full_name as teacher_a_name,
+        f2.full_name as teacher_b_name,
+        d1.department_name as teacher_a_dept,
+        d2.department_name as teacher_b_dept,
         count(distinct cs1.course_id) as shared_teaching_opportunities,
         count(distinct cs1.quarter_id) as quarters_co_teaching,
         count(distinct e.student_id) as shared_students,
         avg(e.grade_points) as avg_shared_student_performance,
         case when f1.department_id = f2.department_id then 1 else 0 end as same_department
-    from {{ ref('stg_faculty') }} f1
-    inner join {{ ref('stg_faculty') }} f2 on f1.faculty_id < f2.faculty_id
+    from {{ ref('stg_teachers') }} f1
+    inner join {{ ref('stg_teachers') }} f2 on f1.faculty_id < f2.faculty_id
     inner join {{ ref('stg_departments') }} d1 on f1.department_id = d1.department_id
     inner join {{ ref('stg_departments') }} d2 on f2.department_id = d2.department_id
     inner join {{ ref('stg_class_sessions') }} cs1 on f1.faculty_id = cs1.faculty_id

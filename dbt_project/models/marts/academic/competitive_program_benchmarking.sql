@@ -7,7 +7,7 @@ with program_performance_metrics as (
         d.budget,
         d.department_size,
         count(distinct s.student_id) as total_students,
-        count(distinct f.faculty_id) as faculty_count,
+        count(distinct f.faculty_id) as staff_count,
         count(distinct c.course_id) as course_offerings,
         avg(s.gpa) as program_avg_gpa,
         count(case when s.student_status = 'graduated' then 1 end) as graduates,
@@ -27,7 +27,7 @@ with program_performance_metrics as (
         ) as exit_rate
     from {{ ref('stg_departments') }} d
     left join {{ ref('stg_students') }} s on d.department_id = s.major_id
-    left join {{ ref('stg_faculty') }} f on d.department_id = f.department_id
+    left join {{ ref('stg_teachers') }} f on d.department_id = f.department_id
     left join {{ ref('stg_courses') }} c on d.department_id = c.department_id
     left join {{ ref('stg_enrollments') }} e on s.student_id = e.student_id and c.course_id = e.course_id
     group by d.department_name, d.department_code, d.budget, d.department_size
@@ -36,33 +36,33 @@ with program_performance_metrics as (
 financial_performance_metrics as (
     select
         d.department_name,
-        sum(f.salary) as faculty_costs,
+        sum(f.salary) as teacher_costs,
         round(d.budget / nullif(count(distinct s.student_id), 0), 2) as cost_per_student,
         round(
             count(distinct ea.student_id) * 100.0 / nullif(count(distinct s.student_id), 0), 2
         ) as revenue_efficiency_ratio,
-        round(sum(f.salary) / nullif(d.budget, 0) * 100, 2) as faculty_cost_ratio,
+        round(sum(f.salary) / nullif(d.budget, 0) * 100, 2) as teacher_cost_ratio,
         round(d.budget / nullif(count(distinct s.student_id), 0), 2) as revenue_per_student
     from {{ ref('stg_departments') }} d
     left join {{ ref('stg_students') }} s on d.department_id = s.major_id
     left join {{ ref('stg_extracurricular_activities') }} ea on s.student_id = ea.student_id
-    left join {{ ref('stg_faculty') }} f on d.department_id = f.department_id
+    left join {{ ref('stg_teachers') }} f on d.department_id = f.department_id
     group by d.department_name, d.budget
 ),
 
 faculty_quality_metrics as (
     select
         d.department_name,
-        avg(f.years_of_service) as avg_faculty_experience,
-        count(case when f.position = 'Professor' then 1 end) as senior_faculty_count,
+        avg(f.years_of_service) as avg_teacher_experience,
+        count(case when f.position = 'Department Head' then 1 end) as dept_head_count,
         round(
-            count(case when f.position = 'Professor' then 1 end) * 100.0 / 
+            count(case when f.position = 'Department Head' then 1 end) * 100.0 /
             nullif(count(distinct f.faculty_id), 0), 2
-        ) as senior_faculty_percentage,
-        avg(f.salary) as avg_faculty_compensation,
-        round(count(distinct s.student_id) / nullif(count(distinct f.faculty_id), 0), 2) as student_faculty_ratio
+        ) as dept_head_percentage,
+        avg(f.salary) as avg_teacher_compensation,
+        round(count(distinct s.student_id) / nullif(count(distinct f.faculty_id), 0), 2) as student_teacher_ratio
     from {{ ref('stg_departments') }} d
-    left join {{ ref('stg_faculty') }} f on d.department_id = f.department_id
+    left join {{ ref('stg_teachers') }} f on d.department_id = f.department_id
     left join {{ ref('stg_students') }} s on d.department_id = s.major_id
     group by d.department_name
 ),
@@ -89,7 +89,7 @@ competitive_analysis as (
         ppm.program_name,
         ppm.department_code,
         ppm.total_students,
-        ppm.faculty_count,
+        ppm.staff_count,
         ppm.course_offerings,
         ppm.program_avg_gpa,
         ppm.graduation_rate,
@@ -98,11 +98,11 @@ competitive_analysis as (
         fpm.revenue_per_student,
         fpm.cost_per_student,
         fpm.revenue_efficiency_ratio,
-        fpm.faculty_cost_ratio,
-        fqm.avg_faculty_experience,
-        fqm.senior_faculty_percentage,
-        fqm.avg_faculty_compensation,
-        fqm.student_faculty_ratio,
+        fpm.teacher_cost_ratio,
+        fqm.avg_teacher_experience,
+        fqm.dept_head_percentage,
+        fqm.avg_teacher_compensation,
+        fqm.student_teacher_ratio,
         cqm.avg_course_rigor,
         cqm.advanced_course_percentage,
         cqm.avg_course_success_rate,
@@ -137,24 +137,24 @@ competitive_analysis as (
                   when fpm.cost_per_student <= 8000 then 25
                   when fpm.cost_per_student <= 12000 then 15
                   else 5 end) +
-            (case when fpm.faculty_cost_ratio <= 60 then 35
-                  when fpm.faculty_cost_ratio <= 75 then 25
-                  when fpm.faculty_cost_ratio <= 85 then 15
+            (case when fpm.teacher_cost_ratio <= 60 then 35
+                  when fpm.teacher_cost_ratio <= 75 then 25
+                  when fpm.teacher_cost_ratio <= 85 then 15
                   else 5 end), 0
         ) as resource_efficiency_score,
         
         round(
-            (case when fqm.senior_faculty_percentage >= 40 then 30
-                  when fqm.senior_faculty_percentage >= 30 then 25
-                  when fqm.senior_faculty_percentage >= 20 then 20
+            (case when fqm.dept_head_percentage >= 40 then 30
+                  when fqm.dept_head_percentage >= 30 then 25
+                  when fqm.dept_head_percentage >= 20 then 20
                   else 15 end) +
-            (case when fqm.avg_faculty_experience >= 15 then 25
-                  when fqm.avg_faculty_experience >= 10 then 20
-                  when fqm.avg_faculty_experience >= 7 then 15
+            (case when fqm.avg_teacher_experience >= 15 then 25
+                  when fqm.avg_teacher_experience >= 10 then 20
+                  when fqm.avg_teacher_experience >= 7 then 15
                   else 10 end) +
-            (case when fqm.student_faculty_ratio between 15 and 25 then 25
-                  when fqm.student_faculty_ratio between 10 and 30 then 20
-                  when fqm.student_faculty_ratio between 8 and 35 then 15
+            (case when fqm.student_teacher_ratio between 15 and 25 then 25
+                  when fqm.student_teacher_ratio between 10 and 30 then 20
+                  when fqm.student_teacher_ratio between 8 and 35 then 15
                   else 10 end) +
             (case when cqm.advanced_course_percentage >= 30 then 20
                   when cqm.advanced_course_percentage >= 20 then 15
@@ -182,13 +182,13 @@ benchmarking_analysis as (
         percent_rank() over (order by graduation_rate) as graduation_rate_percentile,
         percent_rank() over (order by revenue_efficiency_ratio) as revenue_efficiency_percentile,
         percent_rank() over (order by program_avg_gpa) as gpa_percentile,
-        percent_rank() over (order by senior_faculty_percentage) as faculty_quality_percentile,
+        percent_rank() over (order by dept_head_percentage) as teacher_quality_percentile,
         
         -- Institutional averages for comparison
         avg(graduation_rate) over () as institutional_avg_graduation_rate,
         avg(program_avg_gpa) over () as institutional_avg_gpa,
         avg(revenue_efficiency_ratio) over () as institutional_avg_revenue_efficiency,
-        avg(senior_faculty_percentage) over () as institutional_avg_senior_faculty
+        avg(dept_head_percentage) over () as institutional_avg_dept_heads
     from competitive_analysis ca
 ),
 
@@ -222,7 +222,7 @@ strategic_positioning as (
             when graduation_rate > institutional_avg_graduation_rate * 1.2 and
                  program_avg_gpa > institutional_avg_gpa * 1.1 then 'Flagship Program'
             when revenue_efficiency_ratio > institutional_avg_revenue_efficiency * 1.3 then 'High Value Program'
-            when senior_faculty_percentage > institutional_avg_senior_faculty * 1.5 then 'Premium Quality Program'
+            when dept_head_percentage > institutional_avg_dept_heads * 1.5 then 'Premium Quality Program'
             when graduation_rate < institutional_avg_graduation_rate * 0.8 then 'At-Risk Program'
             else 'Standard Program'
         end as program_classification

@@ -3,7 +3,7 @@
 with faculty_courses as (
     select
         f.faculty_id,
-        f.full_name as faculty_name,
+        f.full_name as teacher_name,
         f.position,
         f.salary,
         f.department_id,
@@ -25,7 +25,7 @@ with faculty_courses as (
         sem.academic_year,
         e.enrollment_id,
         e.student_id
-    from {{ ref('stg_faculty') }} f
+    from {{ ref('stg_teachers') }} f
     left join {{ ref('stg_departments') }} d on f.department_id = d.department_id
     left join {{ ref('stg_class_sessions') }} cs on f.faculty_id = cs.faculty_id
     left join {{ ref('stg_courses') }} c on cs.course_id = c.course_id
@@ -36,7 +36,7 @@ with faculty_courses as (
 faculty_metrics as (
     select
         faculty_id,
-        faculty_name,
+        teacher_name,
         position,
         salary,
         department_id,
@@ -58,7 +58,7 @@ faculty_metrics as (
         round(salary / nullif(sum(credits), 0), 2) as salary_per_credit_hour
     from faculty_courses
     group by 
-        faculty_id, faculty_name, position, salary, department_id, 
+        faculty_id, teacher_name, position, salary, department_id, 
         years_of_service, salary_band, department_name, department_code
 ),
 

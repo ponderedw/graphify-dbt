@@ -3,7 +3,7 @@
 with faculty_student_connections as (
     select
         f.faculty_id,
-        f.full_name as faculty_name,
+        f.full_name as teacher_name,
         f.position,
         f.department_id,
         f.years_of_service,
@@ -24,7 +24,7 @@ with faculty_student_connections as (
         sem.quarter_name,
         sem.academic_year,
         d.department_name
-    from {{ ref('stg_faculty') }} f
+    from {{ ref('stg_teachers') }} f
     inner join {{ ref('stg_class_sessions') }} cs on f.faculty_id = cs.faculty_id
     inner join {{ ref('stg_courses') }} c on cs.course_id = c.course_id
     inner join {{ ref('stg_enrollments') }} e on c.course_id = e.course_id and cs.quarter_id = e.quarter_id
@@ -36,7 +36,7 @@ with faculty_student_connections as (
 faculty_teaching_effectiveness as (
     select
         faculty_id,
-        faculty_name,
+        teacher_name,
         position,
         department_name,
         years_of_service,
@@ -60,7 +60,7 @@ faculty_teaching_effectiveness as (
         avg(difficulty_level) as avg_course_difficulty_taught,
         sum(credits) as total_credit_hours_taught
     from faculty_student_connections
-    group by faculty_id, faculty_name, position, department_name, years_of_service
+    group by faculty_id, teacher_name, position, department_name, years_of_service
 ),
 
 student_faculty_exposure as (
@@ -69,14 +69,14 @@ student_faculty_exposure as (
         student_name,
         student_cumulative_gpa,
         academic_standing,
-        count(distinct faculty_id) as unique_faculty_encountered,
+        count(distinct faculty_id) as unique_teachers_encountered,
         count(distinct department_id) as departments_studied_in,
         avg(grade_points) as avg_grade_received,
-        string_agg(distinct faculty_name, ', ' order by faculty_name) as faculty_list,
-        count(case when position = 'Professor' then 1 end) as courses_with_professors,
-        count(case when position = 'Associate Professor' then 1 end) as courses_with_assoc_professors,
-        count(case when position = 'Assistant Professor' then 1 end) as courses_with_asst_professors,
-        avg(years_of_service) as avg_faculty_experience,
+        string_agg(distinct teacher_name, ', ' order by teacher_name) as teacher_list,
+        count(case when position = 'Department Head' then 1 end) as courses_with_dept_heads,
+        count(case when position = 'Senior Teacher' then 1 end) as courses_with_senior_teachers,
+        count(case when position = 'Teacher' then 1 end) as courses_with_teachers,
+        avg(years_of_service) as avg_teacher_experience,
         count(distinct course_id) as total_courses_taken
     from faculty_student_connections
     group by student_id, student_name, student_cumulative_gpa, academic_standing
@@ -116,10 +116,10 @@ interaction_quality_metrics as (
 
 select 
     iqm.*,
-    sfe.unique_faculty_encountered,
-    sfe.avg_faculty_experience,
-    sfe.courses_with_professors,
-    sfe.courses_with_assoc_professors,
-    sfe.courses_with_asst_professors
+    sfe.unique_teachers_encountered,
+    sfe.avg_teacher_experience,
+    sfe.courses_with_dept_heads,
+    sfe.courses_with_senior_teachers,
+    sfe.courses_with_teachers
 from interaction_quality_metrics iqm
 left join student_faculty_exposure sfe on 1=1  -- This creates a cartesian product for analysis

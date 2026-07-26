@@ -50,21 +50,21 @@ academic_performance_kpis as (
 faculty_kpis as (
     select
         current_date as report_date,
-        'Faculty Metrics' as kpi_category,
-        count(distinct f.faculty_id) as total_faculty,
-        round(avg(f.salary), 0) as avg_faculty_salary,
+        'Teacher Metrics' as kpi_category,
+        count(distinct f.faculty_id) as total_teachers,
+        round(avg(f.salary), 0) as avg_teacher_salary,
         round(avg(f.years_of_service), 1) as avg_years_of_service,
-        count(case when f.position = 'Professor' then 1 end) as full_professors,
-        count(case when f.position = 'Associate Professor' then 1 end) as associate_professors,
-        count(case when f.position = 'Assistant Professor' then 1 end) as assistant_professors,
+        count(case when f.position = 'Department Head' then 1 end) as department_heads,
+        count(case when f.position = 'Senior Teacher' then 1 end) as senior_teachers,
+        count(case when f.position = 'Teacher' then 1 end) as teachers,
         round(
-            count(case when f.position = 'Professor' then 1 end) * 100.0 / 
+            count(case when f.position = 'Department Head' then 1 end) * 100.0 /
             nullif(count(f.faculty_id), 0), 2
-        ) as senior_faculty_percentage,
+        ) as dept_head_percentage,
         round(
             count(distinct s.student_id) / nullif(count(distinct f.faculty_id), 0), 2
-        ) as student_faculty_ratio
-    from {{ ref('stg_faculty') }} f
+        ) as student_teacher_ratio
+    from {{ ref('stg_teachers') }} f
     left join {{ ref('stg_class_sessions') }} cs on f.faculty_id = cs.faculty_id
     left join {{ ref('stg_enrollments') }} e on cs.course_id = e.course_id and cs.quarter_id = e.quarter_id
     left join {{ ref('stg_students') }} s on e.student_id = s.student_id
@@ -177,17 +177,17 @@ kpi_targets_and_status as (
     select
         fkpi.report_date,
         fkpi.kpi_category,
-        'Student Faculty Ratio' as kpi_name,
-        fkpi.student_faculty_ratio as actual_value,
+        'Student Teacher Ratio' as kpi_name,
+        fkpi.student_teacher_ratio as actual_value,
         20.0 as target_value,
         case 
-            when fkpi.student_faculty_ratio between 15 and 25 then 'On Target'
-            when fkpi.student_faculty_ratio between 12 and 28 then 'Close to Target'
+            when fkpi.student_teacher_ratio between 15 and 25 then 'On Target'
+            when fkpi.student_teacher_ratio between 12 and 28 then 'Close to Target'
             else 'Below Target'
         end as status,
         case 
-            when fkpi.student_faculty_ratio between 15 and 25 then 100.0
-            else round((20.0 / abs(fkpi.student_faculty_ratio - 20.0)) * 100, 1)
+            when fkpi.student_teacher_ratio between 15 and 25 then 100.0
+            else round((20.0 / abs(fkpi.student_teacher_ratio - 20.0)) * 100, 1)
         end as achievement_percentage
     from faculty_kpis fkpi
     
@@ -234,7 +234,7 @@ select
     eds.overall_kpi_success_rate,
     eds.overall_institutional_health,
     case
-        when kts.status = 'Below Target' and kts.kpi_name in ('Course Success Rate', 'Student Faculty Ratio') then 'High Priority Action Required'
+        when kts.status = 'Below Target' and kts.kpi_name in ('Course Success Rate', 'Student Teacher Ratio') then 'High Priority Action Required'
         when kts.status = 'Below Target' then 'Action Required'
         when kts.status = 'Close to Target' then 'Monitor Closely'
         else 'Continue Current Strategy'
@@ -242,7 +242,7 @@ select
     case
         when kts.kpi_name = 'Total Active Students' and kts.status = 'Below Target' then 'Enhance recruitment and retention programs'
         when kts.kpi_name = 'Course Success Rate' and kts.status = 'Below Target' then 'Improve academic support and teaching effectiveness'
-        when kts.kpi_name = 'Student Faculty Ratio' and kts.status = 'Below Target' then 'Optimize faculty allocation or adjust enrollment'
+        when kts.kpi_name = 'Student Teacher Ratio' and kts.status = 'Below Target' then 'Optimize faculty allocation or adjust enrollment'
         when kts.kpi_name = 'Attendance Rate' and kts.status = 'Below Target' then 'Implement attendance improvement and engagement programs'
         else 'Maintain current practices'
     end as improvement_recommendation
