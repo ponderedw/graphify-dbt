@@ -9,4 +9,9 @@ DbtEducationalDataProject:
       password: "{{ env_var('DBT_PASSWORD', 'dbt_password') }}"
       schema: public
       threads: 4
+    duckdb:
+      type: duckdb
+      path: /tmp/education_dw.duckdb
+      schema: public
+      threads: 4
   target: dev

@@ -203,11 +203,50 @@ def parse_manifest(manifest: dict, project_root: Path) -> dict:
             "downstream": down_ids,
         })
 
+    def _process_test(uid: str, raw: dict):
+        name = raw.get("name", uid.split(".")[-1])
+        test_metadata = raw.get("test_metadata") or {}
+        test_type = test_metadata.get("name", "singular")
+        column_name = test_metadata.get("kwargs", {}).get("column_name", "")
+        severity = raw.get("config", {}).get("severity", "ERROR")
+
+        if column_name:
+            description = f"{test_type} on {column_name}"
+        elif test_type != "singular":
+            description = f"{test_type} test"
+        else:
+            description = f"Singular test: {name}"
+
+        nodes.append({
+            "uid": uid,
+            "name": name,
+            "resource_type": "test",
+            "layer": "test",
+            "description": description,
+            "file_path": raw.get("original_file_path", raw.get("path", "")),
+            "config": raw.get("config", {}),
+            "columns": [],
+            "refs": [],
+            "sources": [],
+            "tags": raw.get("tags", []),
+            "group": raw.get("group", None),
+            "database": raw.get("database", ""),
+            "schema": raw.get("schema", ""),
+            "upstream": sorted(upstream.get(uid, set())),
+            "downstream": sorted(downstream.get(uid, set())),
+            "test_type": test_type,
+            "column_name": column_name,
+            "severity": severity,
+        })
+
     for uid, raw in nodes_raw.items():
         rt = raw.get("resource_type", "model")
-        if rt in ("test", "analysis"):
+        if rt == "analysis":
             continue
-        _process_model(uid, raw, rt)
+        if rt == "test":
+            _process_test(uid, raw)
+        else:
+            _process_model(uid, raw, rt)
 
     for uid, raw in sources_raw.items():
         name = raw.get("name", "")

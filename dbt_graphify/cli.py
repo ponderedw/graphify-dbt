@@ -131,7 +131,7 @@ def main():
     print(f"✓ {out_dir}/.graphify_labels.json")
     print(f"✓ CLAUDE.md                    (graphify lineage instruction upserted)")
     print(f"\nNode breakdown:")
-    for layer in ["source", "staging", "intermediate", "mart", "seed", "macro"]:
+    for layer in ["source", "staging", "intermediate", "mart", "seed", "macro", "test"]:
         if layer_counts[layer]:
             print(f"  {layer:14s} {layer_counts[layer]}")
     print(f"\nQuery the graph:")

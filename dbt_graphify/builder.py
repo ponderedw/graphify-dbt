@@ -159,6 +159,7 @@ def _infer_materialized(layer: str, config: dict) -> str:
         "mart": "table",
         "seed": "seed",
         "macro": "macro",
+        "test": "test",
     }.get(layer, "view")
 
 
@@ -177,6 +178,8 @@ def build_graph_json(
     """
     nodes_out = []
     edges_out = []
+
+    uid_to_rtype = {n["uid"]: n["resource_type"] for n in parsed["nodes"]}
 
     for n in parsed["nodes"]:
         uid = n["uid"]
@@ -205,14 +208,20 @@ def build_graph_json(
             "schema": n.get("schema", ""),
         }
 
+        if n["resource_type"] == "test":
+            node["test_type"] = n.get("test_type", "")
+            node["column_name"] = n.get("column_name", "")
+            node["severity"] = n.get("severity", "ERROR")
+
         nodes_out.append(node)
 
         # Edges: upstream → this node
         for parent_uid in n.get("upstream", []):
+            edge_type = "TESTS" if uid_to_rtype.get(uid) == "test" else "LINEAGE"
             edges_out.append({
                 "source": parent_uid,
                 "target": uid,
-                "type": "LINEAGE",
+                "type": edge_type,
                 "provenance": "EXTRACTED",
                 "key": 0,
             })
@@ -281,7 +290,7 @@ def write_report(
 ):
     nodes = parsed["nodes"]
 
-    layer_order = ["source", "staging", "intermediate", "mart", "seed", "macro"]
+    layer_order = ["source", "staging", "intermediate", "mart", "seed", "macro", "test"]
     layer_labels = {
         "source": "Sources",
         "staging": "Staging — views, clean & standardize",
@@ -289,6 +298,7 @@ def write_report(
         "mart": "Marts — tables, BI-ready",
         "seed": "Seeds — static reference data",
         "macro": "Macros — reusable Jinja2 logic",
+        "test": "Tests — data quality checks",
     }
 
     lines = [
@@ -325,16 +335,24 @@ def write_report(
             down = [d.split(".")[-1] for d in n.get("downstream", [])]
             cols = n.get("columns", [])
             community_label = community_labels.get(uid_to_community.get(n["uid"], 0), "")
-            lines.append(f"**{n['name']}** `[{mat}]` · community: _{community_label}_")
-            lines.append(f"> {desc}")
-            if up:
-                lines.append(f"- Reads from: `{'`, `'.join(sorted(up))}`")
-            if down:
-                lines.append(f"- Feeds into: `{'`, `'.join(sorted(down))}`")
-            if cols:
-                shown = cols[:15]
-                suffix = "..." if len(cols) > 15 else ""
-                lines.append(f"- Columns: `{'`, `'.join(shown)}`{suffix}")
+
+            if layer == "test":
+                severity = n.get("severity", "ERROR")
+                lines.append(f"**{n['name']}** `[{mat}]` · severity: _{severity}_ · community: _{community_label}_")
+                lines.append(f"> {desc}")
+                if up:
+                    lines.append(f"- Tests: `{'`, `'.join(sorted(up))}`")
+            else:
+                lines.append(f"**{n['name']}** `[{mat}]` · community: _{community_label}_")
+                lines.append(f"> {desc}")
+                if up:
+                    lines.append(f"- Reads from: `{'`, `'.join(sorted(up))}`")
+                if down:
+                    lines.append(f"- Feeds into: `{'`, `'.join(sorted(down))}`")
+                if cols:
+                    shown = cols[:15]
+                    suffix = "..." if len(cols) > 15 else ""
+                    lines.append(f"- Columns: `{'`, `'.join(shown)}`{suffix}")
             lines.append("")
 
     # Blast-radius table
