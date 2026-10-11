@@ -88,15 +88,19 @@ When the user types `/dbt-graphify`, use the installed dbt-graphify skill before
 
 
 def install_claude() -> None:
-    # Run graphify install claude first so its output lands before ours
+    # 1. Run graphify install claude first so its output lands before ours
     graphify_bin = shutil.which("graphify")
     if graphify_bin:
         subprocess.run([graphify_bin, "install", "claude"], text=True)
         print()
     else:
-        print("  Note: install graphifyy (`pip install graphifyy`) to also install the graphify skill.")
+        print(
+            "  Note: install graphifyy (`pip install graphifyy`) "
+            "to also install the graphify skill."
+        )
         print()
 
+    # 2. Install dbt-graphify skill globally
     skill_dir = Path.home() / ".claude" / "skills" / "dbt-graphify"
     skill_dir.mkdir(parents=True, exist_ok=True)
     skill_path = skill_dir / "SKILL.md"
@@ -109,14 +113,31 @@ def install_claude() -> None:
         if _CLAUDE_START in existing:
             start = existing.index(_CLAUDE_START)
             end = existing.index(_CLAUDE_END) + len(_CLAUDE_END)
-            claude_md.write_text(existing[:start] + _CLAUDE_BLOCK + existing[end:], encoding="utf-8")
-            print(f"  CLAUDE.md        ->  updated")
+            claude_md.write_text(
+                existing[:start] + _CLAUDE_BLOCK + existing[end:], encoding="utf-8"
+            )
+            print("  CLAUDE.md        ->  updated")
         else:
-            claude_md.write_text(existing.rstrip() + "\n\n" + _CLAUDE_BLOCK + "\n", encoding="utf-8")
-            print(f"  CLAUDE.md        ->  registered")
+            claude_md.write_text(
+                existing.rstrip() + "\n\n" + _CLAUDE_BLOCK + "\n", encoding="utf-8"
+            )
+            print("  CLAUDE.md        ->  registered")
     else:
         claude_md.write_text(_CLAUDE_BLOCK + "\n", encoding="utf-8")
-        print(f"  CLAUDE.md        ->  created")
+        print("  CLAUDE.md        ->  created")
+
+    # 3. Build the graph for the current project
+    print()
+    from dbt_graphify.cli import _resolve_manifest, _run_build
+    cwd = Path.cwd()
+    manifest_path, _ = _resolve_manifest(None, cwd)
+    if manifest_path is None:
+        print(
+            "  graph            ->  skipped (no manifest.json found — "
+            "run `dbt compile` first, then re-run `dbt-graphify install claude`)"
+        )
+    else:
+        _run_build(manifest_path, Path("graphify-out"), skip_html=True)
 
     print()
     print("Done. Open your AI coding assistant and type:")

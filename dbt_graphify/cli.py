@@ -112,7 +112,11 @@ def main():
             from dbt_graphify.install import install_claude
             install_claude()
             return
-        print(f"Unknown install target: {subcmd!r}. Did you mean: dbt-graphify install claude", file=sys.stderr)
+        print(
+            f"Unknown install target: {subcmd!r}. "
+            "Did you mean: dbt-graphify install claude",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     raw_path: Path | None = None
