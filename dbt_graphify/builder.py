@@ -437,6 +437,17 @@ def write_claude_md(repo_root: Path, manifest_path: Path):
         "```bash",
         f"dbt-graphify {rel_manifest}",
         "```",
+        "",
+        "**The graph auto-rebuilds when `manifest.json` changes.** The following dbt commands all regenerate `manifest.json` and therefore trigger an automatic graph rebuild:",
+        "",
+        "```bash",
+        "dbt ls        # list models — always regenerates manifest",
+        "dbt parse     # validate and compile — regenerates manifest",
+        "dbt compile   # compile SQL — regenerates manifest",
+        "dbt run       # execute models — regenerates manifest",
+        "```",
+        "",
+        "**After running any of the above dbt commands, re-query the graph** — the rebuild happens automatically in the background within a few seconds.",
         _CLAUDE_END,
     ])
 

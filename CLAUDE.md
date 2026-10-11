@@ -16,6 +16,17 @@ To rebuild the graph:
 ```bash
 dbt-graphify dbt_project/target/manifest.json
 ```
+
+**The graph auto-rebuilds when `manifest.json` changes.** The following dbt commands all regenerate `manifest.json` and therefore trigger an automatic graph rebuild:
+
+```bash
+dbt ls        # list models — always regenerates manifest
+dbt parse     # validate and compile — regenerates manifest
+dbt compile   # compile SQL — regenerates manifest
+dbt run       # execute models — regenerates manifest
+```
+
+**After running any of the above dbt commands, re-query the graph** — the rebuild happens automatically in the background within a few seconds.
 <!-- dbt-graphify end -->
 
 # dbt-graphify
