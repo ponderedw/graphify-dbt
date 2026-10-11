@@ -127,6 +127,13 @@ def main():
         elif args[i] in ("-h", "--help"):
             _print_help()
             sys.exit(0)
+        elif args[i] in ("-V", "--version"):
+            from importlib.metadata import version, PackageNotFoundError
+            try:
+                print(version("dbt-graphify"))
+            except PackageNotFoundError:
+                print("dbt-graphify (version unknown)")
+            sys.exit(0)
         elif not args[i].startswith("-"):
             raw_path = Path(args[i])
             i += 1
