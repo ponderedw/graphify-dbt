@@ -54,6 +54,26 @@ dbt-graphify --no-html
 python -m dbt_graphify
 ```
 
+### Watch mode
+
+Keep the graph in sync as you work. Run this in one terminal:
+
+```bash
+dbt-graphify --watch                                   # auto-detect manifest
+dbt-graphify . --watch                                 # explicit directory
+dbt-graphify path/to/target/manifest.json --watch      # specific file
+```
+
+In another terminal, run dbt as usual:
+
+```bash
+dbt compile   # or dbt run, dbt build, dbt parse
+```
+
+Every time dbt regenerates `manifest.json`, the graph rebuilds automatically — no manual re-runs. Press Ctrl-C to stop watching.
+
+The graph depends entirely on `manifest.json` (a dbt artifact, typically gitignored), not on source file commits, so watch mode is the right way to keep it current during active development.
+
 ### Fallback: no compiled manifest
 
 If `manifest.json` is empty (dbt not compiled), the tool falls back to `graph_summary.json`, which dbt writes even during `dbt parse`:
