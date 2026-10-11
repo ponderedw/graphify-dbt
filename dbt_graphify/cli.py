@@ -105,6 +105,16 @@ def _run_build(manifest_path: Path, out_dir: Path, skip_html: bool) -> None:
 
 def main():
     args = sys.argv[1:]
+
+    if args and args[0] == "install":
+        subcmd = args[1] if len(args) > 1 else ""
+        if subcmd == "claude":
+            from dbt_graphify.install import install_claude
+            install_claude()
+            return
+        print(f"Unknown install target: {subcmd!r}. Did you mean: dbt-graphify install claude", file=sys.stderr)
+        sys.exit(1)
+
     raw_path: Path | None = None
     out_dir = Path("graphify-out")
     skip_html = False
@@ -175,6 +185,7 @@ def _print_help():
         "\n"
         "Usage:\n"
         "  dbt-graphify [manifest.json|dir] [--out DIR] [--no-html] [--watch]\n"
+        "  dbt-graphify install claude\n"
         "  python -m dbt_graphify [manifest.json|dir] [--out DIR] [--no-html] [--watch]\n"
         "\n"
         "Arguments:\n"
