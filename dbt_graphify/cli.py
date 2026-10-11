@@ -110,7 +110,7 @@ def main():
         subcmd = args[1] if len(args) > 1 else ""
         if subcmd == "claude":
             from dbt_graphify.install import install_claude
-            install_claude()
+            install_claude(project="--project" in args[2:])
             return
         print(
             f"Unknown install target: {subcmd!r}. "
@@ -189,7 +189,7 @@ def _print_help():
         "\n"
         "Usage:\n"
         "  dbt-graphify [manifest.json|dir] [--out DIR] [--no-html] [--watch]\n"
-        "  dbt-graphify install claude\n"
+        "  dbt-graphify install claude [--project]\n"
         "  python -m dbt_graphify [manifest.json|dir] [--out DIR] [--no-html] [--watch]\n"
         "\n"
         "Arguments:\n"

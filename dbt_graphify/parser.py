@@ -94,6 +94,7 @@ def _extract_columns_sql(sql: str) -> list[str]:
 # ── File discovery ────────────────────────────────────────────────────────────
 
 def find_manifest(start: Path) -> Path | None:
+    # Check well-known locations first (fast path)
     candidates = [
         start / "target" / "manifest.json",
         start / "dbt_project" / "target" / "manifest.json",
@@ -102,6 +103,10 @@ def find_manifest(start: Path) -> Path | None:
     for c in candidates:
         if c.exists() and c.stat().st_size > 10:
             return c
+    # Shallow recursive search: any target/manifest.json up to 4 levels deep
+    for manifest in sorted(start.rglob("target/manifest.json")):
+        if manifest.stat().st_size > 10:
+            return manifest
     return None
 
 
@@ -114,6 +119,9 @@ def find_graph_summary(start: Path) -> Path | None:
     for c in candidates:
         if c.exists() and c.stat().st_size > 10:
             return c
+    for summary in sorted(start.rglob("target/graph_summary.json")):
+        if summary.stat().st_size > 10:
+            return summary
     return None
 
 
