@@ -9,3 +9,4 @@ __pycache__/
 .venv/
 .DS_Store
 coder_template.tf
+.env

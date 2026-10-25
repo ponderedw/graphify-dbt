@@ -1,6 +1,6 @@
 [project]
 name = "dbt-graphify"
-version = "0.1.9"
+version = "0.1.10"
 description = "Parse a dbt manifest.json into a graphify-queryable knowledge graph"
 readme = "README.md"
 license = "MIT"
@@ -29,7 +29,9 @@ dbt-graphify = "dbt_graphify.cli:main"
 [project.optional-dependencies]
 yaml = ["PyYAML>=6.0"]
 clustering = ["networkx>=3.0"]
-all = ["PyYAML>=6.0", "networkx>=3.0"]
+mcp-server = ["mcp>=1.0,<2", "fastapi>=0.100", "uvicorn>=0.20"]
+s3 = ["boto3>=1.26"]
+all = ["PyYAML>=6.0", "networkx>=3.0", "mcp>=1.0,<2", "boto3>=1.26", "fastapi>=0.100", "uvicorn>=0.20"]
 
 [tool.poetry]
 packages = [{include = "dbt_graphify"}]

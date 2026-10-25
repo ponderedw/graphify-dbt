@@ -1,0 +1,76 @@
+# MCP server stack for lineage history queries
+#
+# Combines:
+#   dbt-graphify-mcp  — snapshot history + graphify query engine (this repo)
+#   git-mcp           — git log, blame, file history
+#
+# Workflow: git MCP finds commits that touched a file → this server
+# returns the graph state at those commits:
+#   1. git MCP    → git log --follow models/staging/stg_orders.sql
+#   2. git MCP    → SHA abc1234
+#   3. graphify   → find_by_sha("abc1234")           → snapshot_id
+#   4. graphify   → get_blast_radius("stg_orders", ref=snapshot_id)
+#   5. graphify   → query_graph("what feeds mart_revenue?", ref=snapshot_id)
+#
+# ── Usage ──────────────────────────────────────────────────────────────────────
+#
+# Copy this file to your dbt repo, fill in the .env vars, then:
+#
+#   docker compose -f docker-compose.mcp.yml up --build
+#
+# ── .env ───────────────────────────────────────────────────────────────────────
+#
+#   S3_PATH=s3://my-bucket/psdw
+#   AWS_ACCESS_KEY_ID=AKIA...
+#   AWS_SECRET_ACCESS_KEY=...
+#   AWS_DEFAULT_REGION=us-east-1
+#   TOKEN=your-secret-token          # required for authenticated SSE (TRANSPORT=sse)
+#
+# ── Claude Code .claude/settings.json ──────────────────────────────────────────
+#
+#   {
+#     "mcpServers": {
+#       "dbt-graphify": {
+#         "command": "docker",
+#         "args": ["compose","-f","docker-compose.mcp.yml","run","--rm","-i","dbt-graphify-mcp"]
+#       },
+#       "git": {
+#         "command": "docker",
+#         "args": ["compose","-f","docker-compose.mcp.yml","run","--rm","-i","git-mcp"]
+#       }
+#     }
+#   }
+
+services:
+  dbt-graphify-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # S3 backend — fill in your values or use a .env file
+      S3_PATH: ${S3_PATH:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      TRANSPORT: ${TRANSPORT:-stdio}
+      PORT: ${PORT:-8080}
+      TOKEN: ${TOKEN:-}
+      # Local fallback: mount graphify-out/ here when S3_PATH is not set
+      SNAPSHOTS_DIR: /snapshots
+    volumes:
+      - ${GRAPHIFY_OUT:-./graphify-out}:/snapshots:ro
+    ports:
+      - "${PORT:-8080}:${PORT:-8080}"
+    stdin_open: true
+    tty: false
+
+  # Community git MCP server — provides git log, blame, file history
+  # See: https://github.com/modelcontextprotocol/servers/tree/main/src/git
+  git-mcp:
+    image: mcp/git:latest
+    environment:
+      GIT_REPO: /repo
+    volumes:
+      - ${GIT_REPO:-.}:/repo:ro
+    stdin_open: true
+    tty: false

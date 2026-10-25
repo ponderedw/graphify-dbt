@@ -106,6 +106,18 @@ def _run_build(manifest_path: Path, out_dir: Path, skip_html: bool) -> None:
 def main():
     args = sys.argv[1:]
 
+    if args and args[0] == "snapshot":
+        _cmd_snapshot(args[1:])
+        return
+
+    if args and args[0] == "mcp":
+        _cmd_mcp(args[1:])
+        return
+
+    if args and args[0] == "upload":
+        _cmd_upload(args[1:])
+        return
+
     if args and args[0] == "install":
         subcmd = args[1] if len(args) > 1 else ""
         if subcmd == "claude":
@@ -183,34 +195,202 @@ def main():
     _run_build(manifest_path, out_dir, skip_html)
 
 
+def _cmd_snapshot(args: list[str]) -> None:
+    """Handle: dbt-graphify snapshot [out_dir] [options]"""
+    from dbt_graphify.snapshot import run_snapshot
+
+    out_dir = Path("graphify-out")
+    sha: str | None = None
+    pr_number: int | None = None
+    pr_title: str | None = None
+    pr_url: str | None = None
+    pr_merged_at: str | None = None
+
+    i = 0
+    while i < len(args):
+        if args[i] == "--sha" and i + 1 < len(args):
+            sha = args[i + 1]; i += 2
+        elif args[i].startswith("--sha="):
+            sha = args[i].split("=", 1)[1]; i += 1
+        elif args[i] == "--pr-number" and i + 1 < len(args):
+            pr_number = int(args[i + 1]); i += 2
+        elif args[i] == "--pr-title" and i + 1 < len(args):
+            pr_title = args[i + 1]; i += 2
+        elif args[i] == "--pr-url" and i + 1 < len(args):
+            pr_url = args[i + 1]; i += 2
+        elif args[i] == "--pr-merged-at" and i + 1 < len(args):
+            pr_merged_at = args[i + 1]; i += 2
+        elif not args[i].startswith("-"):
+            out_dir = Path(args[i]); i += 1
+        else:
+            i += 1
+
+    run_snapshot(
+        out_dir=out_dir,
+        sha=sha,
+        pr_number=pr_number,
+        pr_title=pr_title,
+        pr_url=pr_url,
+        pr_merged_at=pr_merged_at,
+    )
+
+
+def _cmd_mcp(args: list[str]) -> None:
+    """Handle: dbt-graphify mcp [options]
+
+    S3 env vars (alternative to CLI flags):
+      S3_PATH               s3://bucket/project  (e.g. s3://my-bucket/psdw)
+      AWS_ACCESS_KEY_ID     AWS access key
+      AWS_SECRET_ACCESS_KEY AWS secret key
+      AWS_DEFAULT_REGION    AWS region (default: us-east-1)
+    """
+    import os
+    from dbt_graphify.mcp_server import SnapshotStore, S3SnapshotStore, run_mcp_server
+
+    snapshots_dir: str | None = None
+    s3_bucket: str | None = None
+    s3_project: str | None = None
+    s3_region = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
+    transport = os.environ.get("TRANSPORT", "stdio")
+    port = int(os.environ.get("PORT", "8080"))
+    token: str | None = os.environ.get("TOKEN") or None
+
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in ("--snapshots-dir", "-d") and i + 1 < len(args):
+            snapshots_dir = args[i + 1]; i += 2
+        elif a.startswith("--snapshots-dir="):
+            snapshots_dir = a.split("=", 1)[1]; i += 1
+        elif a == "--s3-bucket" and i + 1 < len(args):
+            s3_bucket = args[i + 1]; i += 2
+        elif a.startswith("--s3-bucket="):
+            s3_bucket = a.split("=", 1)[1]; i += 1
+        elif a == "--s3-project" and i + 1 < len(args):
+            s3_project = args[i + 1]; i += 2
+        elif a.startswith("--s3-project="):
+            s3_project = a.split("=", 1)[1]; i += 1
+        elif a == "--s3-region" and i + 1 < len(args):
+            s3_region = args[i + 1]; i += 2
+        elif a == "--transport" and i + 1 < len(args):
+            transport = args[i + 1]; i += 2
+        elif a == "--port" and i + 1 < len(args):
+            port = int(args[i + 1]); i += 2
+        elif a == "--token" and i + 1 < len(args):
+            token = args[i + 1]; i += 2
+        elif a.startswith("--token="):
+            token = a.split("=", 1)[1]; i += 1
+        else:
+            i += 1
+
+    # S3_PATH env var: s3://bucket/project
+    s3_path_env = os.environ.get("S3_PATH", "")
+    if s3_path_env and not s3_bucket:
+        # s3://bucket/project  →  bucket=bucket, project=project
+        stripped = s3_path_env.lstrip("s3://").lstrip("/")
+        parts = stripped.split("/", 1)
+        s3_bucket = parts[0]
+        s3_project = parts[1].strip("/") if len(parts) > 1 else s3_project
+
+    if s3_bucket and s3_project:
+        store: SnapshotStore = S3SnapshotStore(s3_bucket, s3_project, s3_region)
+    else:
+        store = SnapshotStore(snapshots_dir or "graphify-out")
+
+    run_mcp_server(store, transport=transport, port=port, token=token)
+
+
+def _cmd_upload(args: list[str]) -> None:
+    """Handle: dbt-graphify upload [out_dir] --s3-path S3_PATH [--snapshot ID] [--region REGION]"""
+    import os
+    from dbt_graphify.snapshot import upload_to_s3
+
+    out_dir = Path("graphify-out")
+    s3_path: str | None = os.environ.get("S3_PATH", "") or None
+    snapshot_id: str | None = None
+    region = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
+
+    i = 0
+    while i < len(args):
+        if args[i] == "--s3-path" and i + 1 < len(args):
+            s3_path = args[i + 1]; i += 2
+        elif args[i].startswith("--s3-path="):
+            s3_path = args[i].split("=", 1)[1]; i += 1
+        elif args[i] == "--snapshot" and i + 1 < len(args):
+            snapshot_id = args[i + 1]; i += 2
+        elif args[i].startswith("--snapshot="):
+            snapshot_id = args[i].split("=", 1)[1]; i += 1
+        elif args[i] == "--region" and i + 1 < len(args):
+            region = args[i + 1]; i += 2
+        elif not args[i].startswith("-"):
+            out_dir = Path(args[i]); i += 1
+        else:
+            i += 1
+
+    if not s3_path:
+        print(
+            "ERROR: --s3-path is required (or set S3_PATH env var).\n"
+            "Example: dbt-graphify upload --s3-path s3://my-bucket/my-project",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    # Parse s3://bucket/project
+    stripped = s3_path.lstrip("s3://").lstrip("/")
+    parts = stripped.split("/", 1)
+    bucket = parts[0]
+    project = parts[1].strip("/") if len(parts) > 1 else ""
+    if not project:
+        print(
+            f"ERROR: S3 path must be s3://bucket/project, got {s3_path!r}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    print(f"Uploading {out_dir}/ → s3://{bucket}/{project}/")
+    upload_to_s3(out_dir, bucket, project, region=region, snapshot_id=snapshot_id)
+
+
 def _print_help():
     print(
         "dbt-graphify — parse dbt manifest.json into a graphify knowledge graph\n"
         "\n"
         "Usage:\n"
         "  dbt-graphify [manifest.json|dir] [--out DIR] [--no-html] [--watch]\n"
+        "  dbt-graphify snapshot [out_dir] [--sha SHA] [--pr-number N] [--pr-title T]\n"
+        "  dbt-graphify upload [out_dir] --s3-path s3://bucket/project [--snapshot ID]\n"
+        "  dbt-graphify mcp [--snapshots-dir DIR] [--transport stdio|sse] [--port N]\n"
         "  dbt-graphify install claude [--project]\n"
-        "  python -m dbt_graphify [manifest.json|dir] [--out DIR] [--no-html] [--watch]\n"
         "\n"
-        "Arguments:\n"
+        "Build graph:\n"
         "  manifest.json   Path to dbt manifest.json (auto-detected if omitted)\n"
-        "  dir             Directory to search for manifest.json (e.g. .)\n"
+        "  dir             Directory to search for manifest.json\n"
         "  --out DIR       Output directory (default: graphify-out/)\n"
-        "  --no-html       Skip graph.html generation via graphify cluster-only\n"
+        "  --no-html       Skip graph.html generation\n"
         "  --watch         Rebuild whenever manifest.json changes on disk\n"
-        "                  (run dbt compile / dbt run in another terminal)\n"
         "\n"
-        "Examples:\n"
-        "  dbt-graphify                                   # one-shot, auto-detect\n"
-        "  dbt-graphify --watch                           # watch, auto-detect\n"
-        "  dbt-graphify . --watch                         # watch cwd\n"
-        "  dbt-graphify path/to/target/manifest.json --watch\n"
+        "Snapshot — archive current graphify-out into a dated folder:\n"
+        "  dbt-graphify snapshot\n"
+        "  dbt-graphify snapshot graphify-out --sha abc1234 --pr-number 42\n"
+        "  Creates: graphify-out/2026-07-27T1130Z_abc1234/\n"
+        "           graphify-out/index.json\n"
         "\n"
-        "Outputs:\n"
+        "Upload — push snapshots to S3:\n"
+        "  dbt-graphify upload                                    # push all, s3-path from S3_PATH env\n"
+        "  dbt-graphify upload graphify-out --s3-path s3://bucket/project\n"
+        "  dbt-graphify upload --s3-path s3://b/p --snapshot 2026-07-27T1130Z_abc1234\n"
+        "  S3 env vars: S3_PATH=s3://bucket/project  AWS_ACCESS_KEY_ID=...  AWS_SECRET_ACCESS_KEY=...\n"
+        "\n"
+        "MCP server — expose snapshot history to AI agents:\n"
+        "  dbt-graphify mcp                              # stdio, local graphify-out/\n"
+        "  dbt-graphify mcp --s3-bucket BUCKET --s3-project PROJECT  # S3 backend\n"
+        "  dbt-graphify mcp --transport sse --port 8080  # HTTP / SSE\n"
+        "  S3 env vars: S3_PATH=s3://bucket/project  AWS_ACCESS_KEY_ID=...  AWS_SECRET_ACCESS_KEY=...\n"
+        "\n"
+        "Outputs (build):\n"
         "  graphify-out/graph.json          NetworkX node-link graph\n"
         "  graphify-out/lineage.json        Ancestor/descendant blast-radius maps\n"
         "  graphify-out/GRAPH_REPORT.md     Human-readable architecture summary\n"
-        "  graphify-out/.graphify_root      Project root path\n"
         "  graphify-out/.graphify_labels.json Community labels\n"
         "  graphify-out/graph.html          Interactive visualization (via graphify)\n"
     )
