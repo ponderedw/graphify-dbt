@@ -23,6 +23,8 @@ mcp:
         default: us-east-1
       - name: LOCAL_GRAPHIFY
         description: "Set to 'true' to use local graphify-out/ instead of S3"
+      - name: MANIFEST_PATH
+        description: "Path to manifest.json inside the container. When set, enables --watch: the MCP auto-rebuilds the graph whenever dbt regenerates the manifest."
   volumes:
     - name: dbt-graphify-cache
       mount: /root/.cache/dbt-graphify

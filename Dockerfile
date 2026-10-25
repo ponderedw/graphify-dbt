@@ -76,13 +76,15 @@ RUN pip install --no-cache-dir ".[mcp-server,s3]" \
 # SNAPSHOTS_DIR        local volume path     (default: /snapshots, used when S3_PATH unset)
 # TRANSPORT            stdio | sse           (default: stdio)
 # PORT                 HTTP port for SSE     (default: 8080)
+# MANIFEST_PATH        path to manifest.json (enables --watch mode when set)
 
 ENV SNAPSHOTS_DIR=/snapshots
 ENV TRANSPORT=stdio
 ENV PORT=8080
 ENV TOKEN=""
+ENV MANIFEST_PATH=""
 
 VOLUME /snapshots
 
 ENTRYPOINT ["sh", "-c", \
-  "dbt-graphify mcp --snapshots-dir \"$SNAPSHOTS_DIR\" --transport \"$TRANSPORT\" --port \"$PORT\" ${TOKEN:+--token \"$TOKEN\"}"]
+  "dbt-graphify mcp --snapshots-dir \"$SNAPSHOTS_DIR\" --transport \"$TRANSPORT\" --port \"$PORT\" ${TOKEN:+--token \"$TOKEN\"} ${MANIFEST_PATH:+--watch --manifest \"$MANIFEST_PATH\"}"]

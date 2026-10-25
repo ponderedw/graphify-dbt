@@ -254,6 +254,8 @@ def _cmd_mcp(args: list[str]) -> None:
     transport = os.environ.get("TRANSPORT", "stdio")
     port = int(os.environ.get("PORT", "8080"))
     token: str | None = os.environ.get("TOKEN") or None
+    watch_mode = False
+    manifest_path: str | None = os.environ.get("MANIFEST_PATH") or None
 
     i = 0
     while i < len(args):
@@ -280,6 +282,12 @@ def _cmd_mcp(args: list[str]) -> None:
             token = args[i + 1]; i += 2
         elif a.startswith("--token="):
             token = a.split("=", 1)[1]; i += 1
+        elif a == "--watch":
+            watch_mode = True; i += 1
+        elif a in ("--manifest", "-m") and i + 1 < len(args):
+            manifest_path = args[i + 1]; i += 2
+        elif a.startswith("--manifest="):
+            manifest_path = a.split("=", 1)[1]; i += 1
         else:
             i += 1
 
@@ -298,6 +306,27 @@ def _cmd_mcp(args: list[str]) -> None:
         store: SnapshotStore = S3SnapshotStore(s3_bucket, s3_project, s3_region)
     else:
         store = SnapshotStore(snapshots_dir or "graphify-out")
+
+    if watch_mode:
+        import sys
+        import threading
+        from dbt_graphify.watch import watch as _watch
+        if not manifest_path:
+            print(
+                "[dbt-graphify mcp] --watch requires --manifest <path> or MANIFEST_PATH env var",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        out_dir = Path(snapshots_dir or "graphify-out")
+        t = threading.Thread(
+            target=_watch,
+            args=(Path(manifest_path), out_dir),
+            kwargs={"skip_html": True},
+            daemon=True,
+            name="dbt-graphify-watch",
+        )
+        t.start()
+        print(f"[dbt-graphify mcp] watch started → {manifest_path}", flush=True)
 
     run_mcp_server(store, transport=transport, port=port, token=token)
 
