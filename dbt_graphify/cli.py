@@ -239,7 +239,7 @@ def _cmd_mcp(args: list[str]) -> None:
     """Handle: dbt-graphify mcp [options]
 
     S3 env vars (alternative to CLI flags):
-      S3_PATH               s3://bucket/project  (e.g. s3://my-bucket/psdw)
+      S3_PATH               s3://bucket/project  (e.g. s3://my-bucket/dbt-graphify-output)
       AWS_ACCESS_KEY_ID     AWS access key
       AWS_SECRET_ACCESS_KEY AWS secret key
       AWS_DEFAULT_REGION    AWS region (default: us-east-1)

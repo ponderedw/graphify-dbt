@@ -20,7 +20,7 @@
 #
 # ── .env ───────────────────────────────────────────────────────────────────────
 #
-#   S3_PATH=s3://my-bucket/psdw
+#   S3_PATH=s3://my-bucket/dbt-graphify-output
 #   AWS_ACCESS_KEY_ID=AKIA...
 #   AWS_SECRET_ACCESS_KEY=...
 #   AWS_DEFAULT_REGION=us-east-1

@@ -1,0 +1,50 @@
+{
+  "name": "dbt-graphify",
+  "description": "dbt lineage queries and snapshot history over S3",
+  "userConfig": {
+    "s3_path": {
+      "type": "string",
+      "title": "S3 path",
+      "description": "S3 location where snapshots are stored, e.g. s3://bucket/project",
+      "required": true
+    },
+    "aws_access_key_id": {
+      "type": "string",
+      "title": "AWS access key ID",
+      "description": "AWS access key with read access to the S3 bucket",
+      "sensitive": true
+    },
+    "aws_secret_access_key": {
+      "type": "string",
+      "title": "AWS secret access key",
+      "description": "AWS secret key paired with the access key ID",
+      "sensitive": true
+    },
+    "aws_region": {
+      "type": "string",
+      "title": "AWS region",
+      "description": "AWS region where the S3 bucket lives, e.g. us-east-1",
+      "default": "us-east-1"
+    }
+  },
+  "mcpServers": {
+    "dbt-graphify": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-e", "S3_PATH",
+        "-e", "AWS_ACCESS_KEY_ID",
+        "-e", "AWS_SECRET_ACCESS_KEY",
+        "-e", "AWS_DEFAULT_REGION",
+        "-v", "dbt-graphify-cache:/root/.cache/dbt-graphify",
+        "pondered/dbt-graphify-mcp:latest"
+      ],
+      "env": {
+        "S3_PATH": "${user_config.s3_path}",
+        "AWS_ACCESS_KEY_ID": "${user_config.aws_access_key_id}",
+        "AWS_SECRET_ACCESS_KEY": "${user_config.aws_secret_access_key}",
+        "AWS_DEFAULT_REGION": "${user_config.aws_region}"
+      }
+    }
+  }
+}

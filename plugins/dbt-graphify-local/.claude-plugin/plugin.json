@@ -1,0 +1,24 @@
+{
+  "name": "dbt-graphify-local",
+  "description": "dbt lineage queries over your local graphify-out/ snapshots",
+  "userConfig": {
+    "graphify_out": {
+      "type": "directory",
+      "title": "graphify-out folder",
+      "description": "The folder dbt-graphify --watch writes to, e.g. ~/my-dbt-repo/graphify-out",
+      "required": true
+    }
+  },
+  "mcpServers": {
+    "dbt-graphify": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "-e", "LOCAL_GRAPHIFY=true",
+        "-v", "${user_config.graphify_out}:/snapshots:ro",
+        "-v", "dbt-graphify-cache:/root/.cache/dbt-graphify",
+        "pondered/dbt-graphify-mcp:latest"
+      ]
+    }
+  }
+}

@@ -16,7 +16,7 @@
 # ── Run — S3 backend (stdio, for Claude Code) ─────────────────────────────────
 #
 #   docker run --rm -i \
-#     -e S3_PATH=s3://my-bucket/psdw \
+#     -e S3_PATH=s3://my-bucket/dbt-graphify-output \
 #     -e AWS_ACCESS_KEY_ID=AKIA... \
 #     -e AWS_SECRET_ACCESS_KEY=... \
 #     -e AWS_DEFAULT_REGION=us-east-1 \
@@ -25,7 +25,7 @@
 # ── Run — SSE (HTTP / browser) ────────────────────────────────────────────────
 #
 #   docker run --rm -p 8080:8080 \
-#     -e S3_PATH=s3://my-bucket/psdw \
+#     -e S3_PATH=s3://my-bucket/dbt-graphify-output \
 #     -e AWS_ACCESS_KEY_ID=AKIA... \
 #     -e AWS_SECRET_ACCESS_KEY=... \
 #     -e TRANSPORT=sse \
@@ -49,7 +49,7 @@
 #       "dbt-graphify": {
 #         "command": "docker",
 #         "args": ["run","--rm","-i",
-#                  "-e","S3_PATH=s3://my-bucket/psdw",
+#                  "-e","S3_PATH=s3://my-bucket/dbt-graphify-output",
 #                  "-e","AWS_ACCESS_KEY_ID=...",
 #                  "-e","AWS_SECRET_ACCESS_KEY=...",
 #                  "dbt-graphify-mcp"]

@@ -288,10 +288,10 @@ def run_mcp_server(
         version and returns the lineage answer.
 
         question: anything about models, dependencies, blast radius, lineage paths.
-          "which models depend on stg_orders?"
-          "what breaks if I change stg_students?"
-          "trace the lineage of mart_revenue"
-          "how does data get from src_ps_students to mart_at_risk_report?"
+          "which models depend on stg_enrollments?"
+          "what breaks if I change stg_courses?"
+          "trace the lineage of faculty_performance_dashboard"
+          "how does data get from stg_students to academic_early_warning_system?"
 
         ref: which graph version to query — defaults to the latest snapshot.
           "latest"                   → most recent snapshot

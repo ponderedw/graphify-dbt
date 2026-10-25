@@ -1,0 +1,16 @@
+{
+  "name": "ponder",
+  "owner": { "name": "Ponder Labs" },
+  "plugins": [
+    {
+      "name": "dbt-graphify",
+      "source": "./plugins/dbt-graphify",
+      "description": "Lineage history from S3 snapshots"
+    },
+    {
+      "name": "dbt-graphify-local",
+      "source": "./plugins/dbt-graphify-local",
+      "description": "Lineage from your local graphify-out/"
+    }
+  ]
+}

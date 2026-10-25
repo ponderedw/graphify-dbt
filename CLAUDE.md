@@ -40,7 +40,7 @@ dbt_graphify/       ← Python package source
   parser.py         ← reads manifest.json / graph_summary.json
   builder.py        ← builds graph.json, lineage.json, GRAPH_REPORT.md
   cli.py            ← entry point
-dbt_project/        ← demo dbt project (university analytics, 22 models)
+dbt_project/        ← demo dbt project (university analytics, 45 models)
 graphify-out/       ← generated output (gitignored)
 ```
 

@@ -1,6 +1,6 @@
 [project]
 name = "dbt-graphify"
-version = "0.1.12"
+version = "0.1.13"
 description = "Parse a dbt manifest.json into a graphify-queryable knowledge graph"
 readme = "README.md"
 license = "MIT"
@@ -19,8 +19,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ponder-co/dbt-graphify"
-Repository = "https://github.com/ponder-co/dbt-graphify"
+Homepage = "https://github.com/ponderedw/graphify-dbt"
+Repository = "https://github.com/ponderedw/graphify-dbt"
 
 [project.scripts]
 dbt-graphify = "dbt_graphify.cli:main"

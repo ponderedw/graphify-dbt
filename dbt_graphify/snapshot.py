@@ -58,7 +58,7 @@ def _git(*args: str) -> str:
 def get_head_sha() -> Optional[str]:
     try:
         return _git("rev-parse", "HEAD")
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
 
@@ -78,7 +78,7 @@ def get_git_commits(base_sha: str, head_sha: str) -> list[dict]:
                     "message": parts[3],
                 })
         return commits
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return []
 
 
@@ -131,8 +131,8 @@ def resolve_base_sha(out_dir: Path, head_sha: str) -> tuple[str, Optional[str]]:
         return prev["head_sha"], prev["snapshot_id"]
     try:
         return _git("rev-parse", "HEAD~1"), None
-    except subprocess.CalledProcessError:
-        return head_sha, None  # single-commit repo, diff will be empty
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return head_sha, None  # no git available or single-commit repo
 
 
 
