@@ -83,6 +83,42 @@ def get_git_commits(base_sha: str, head_sha: str) -> list[dict]:
 
 
 
+def build_file_history(
+    pathspecs: list[str] | None = None,
+    max_entries: int = 20000,
+) -> dict:
+    """Return {filepath: last_commit_info} for files matching pathspecs."""
+    cmd = [
+        "git", "log",
+        "--format=COMMIT|%H|%an|%aI|%s",
+        "--diff-filter=AM", "--name-only",
+        "--", *(pathspecs or []),
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return {}
+
+    history: dict = {}
+    current: dict | None = None
+    for line in result.stdout.splitlines():
+        if line.startswith("COMMIT|"):
+            parts = line.split("|", 4)
+            current = {
+                "sha": parts[1],
+                "author": parts[2],
+                "date": parts[3],
+                "subject": parts[4] if len(parts) > 4 else "",
+            }
+        elif line.strip() and current is not None:
+            path = line.strip()
+            if path not in history:
+                history[path] = current
+            if len(history) >= max_entries:
+                break
+    return history
+
+
 def resolve_base_sha(out_dir: Path, head_sha: str) -> tuple[str, Optional[str]]:
     """Return (base_sha, previous_snapshot_id).
 
@@ -201,6 +237,14 @@ def run_snapshot(
     # Create snapshot folder and copy artifacts
     snap_dir = out_dir / snapshot_id
     snap_dir.mkdir(parents=True, exist_ok=True)
+
+    # TODO: build file history (git_file_history MCP tool)
+    # file_history = build_file_history(["dbt/", "macros/"])
+    # if file_history:
+    #     (snap_dir / "file_history.json").write_text(
+    #         json.dumps(file_history, indent=2), encoding="utf-8"
+    #     )
+    #     print(f"  ✓ file_history.json  ({len(file_history)} files indexed)")
 
     copied = []
     for fname in _SNAPSHOT_ARTIFACTS:

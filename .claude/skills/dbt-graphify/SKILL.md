@@ -31,6 +31,8 @@ If the graph is missing or the user asked for a rebuild:
 
 ```bash
 dbt-graphify            # auto-detects manifest.json
+# or explicitly:
+dbt-graphify path/to/target/manifest.json --out path/to/graphify-out
 ```
 
 ### Step 3 — check / start the watch process
@@ -58,6 +60,49 @@ dbt run       # execute models
 The watch process detects the updated `manifest.json` and rebuilds the graph within a few
 seconds. **Always re-query the graph after these commands** — do not answer lineage
 questions from stale data. Wait ~5 seconds then run your query.
+
+## Snapshots
+
+Every time the watch process rebuilds the graph, it also creates a timestamped snapshot:
+
+```
+graphify-out/
+  graph.json                      ← current graph (always overwritten)
+  index.json                      ← ordered list of all snapshots
+  2026-10-25T1430Z_a5547d5/       ← snapshot folder (timestamp + short SHA)
+    graph.json
+    lineage.json
+    meta.json                     ← head_sha, base_sha, commits since last snapshot
+    GRAPH_REPORT.md
+    ...
+```
+
+### Manually create a snapshot
+
+```bash
+dbt-graphify snapshot --out graphify-out
+# or with explicit SHA:
+dbt-graphify snapshot --out graphify-out --sha <git-sha>
+```
+
+### List snapshots
+
+```bash
+cat graphify-out/index.json | python3 -c "import sys,json; [print(e['snapshot_id'], e['timestamp'][:10], e['nodes_count'], 'nodes') for e in json.load(sys.stdin)]"
+```
+
+### Push snapshots to S3
+
+```bash
+dbt-graphify s3-upload --out graphify-out --bucket <bucket> --project <project>
+```
+
+### Watch + snapshot (automatic)
+
+The `--watch` flag already chains both steps — no extra config needed:
+1. `manifest.json` changes → graph rebuilt
+2. Snapshot automatically created in `graphify-out/<timestamp>_<sha>/`
+3. `index.json` updated
 
 ## Never grep SQL for lineage
 

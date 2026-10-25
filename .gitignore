@@ -1,7 +1,6 @@
 dbt_project/target/*
 !dbt_project/target/manifest.json
 dbt_project/logs
-graphify-out/
 dist/
 __pycache__/
 *.pyc
@@ -10,3 +9,4 @@ __pycache__/
 .DS_Store
 coder_template.tf
 .env
+graphify-out

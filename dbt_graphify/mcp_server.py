@@ -116,6 +116,7 @@ class S3SnapshotStore(SnapshotStore):
     _SNAPSHOT_FILES = [
         "graph.json", "lineage.json", "meta.json",
         "GRAPH_REPORT.md", ".graphify_labels.json", ".graphify_analysis.json",
+        "file_history.json",
     ]
 
     def __init__(self, bucket: str, project: str, region: str = "us-east-1"):
@@ -332,6 +333,33 @@ def run_mcp_server(
             "edges_added": [{"source": s, "target": t} for s, t in sorted(new_edges - old_edges)],
             "edges_removed": [{"source": s, "target": t} for s, t in sorted(old_edges - new_edges)],
         }, indent=2)
+
+    # TODO: git_file_history tool (USE_GIT=true) — enable when file_history.json
+    # is being generated in CI (GIT_STRATEGY: fetch + GIT_DEPTH: 0).
+    #
+    # if os.environ.get("USE_GIT", "").lower() in ("1", "true", "yes"):
+    #     @server.tool()
+    #     def git_file_history(file_pattern: str, ref: str = "latest", max_count: int = 10) -> str:
+    #         """Find who last changed dbt model files matching a name or pattern."""
+    #         import fnmatch
+    #         sid = _sid(ref)
+    #         try:
+    #             fh = store.read_json(sid, "file_history.json")
+    #         except FileNotFoundError:
+    #             return "file_history.json not found. Requires GIT_STRATEGY: fetch in CI."
+    #         results = {}
+    #         for path, commit in fh.items():
+    #             filename = Path(path).name
+    #             if (fnmatch.fnmatch(filename, file_pattern)
+    #                     or fnmatch.fnmatch(path, file_pattern)
+    #                     or file_pattern.lower() in path.lower()):
+    #                 results[path] = commit
+    #                 if len(results) >= max_count:
+    #                     break
+    #         if not results:
+    #             return json.dumps({"error": f"No files matching {file_pattern!r}.",
+    #                                "tip": "Try a broader pattern or substring."})
+    #         return json.dumps(results, indent=2)
 
     if transport == "sse" and token:
         # Authenticated SSE: mount MCP behind a FastAPI app with bearer-token middleware

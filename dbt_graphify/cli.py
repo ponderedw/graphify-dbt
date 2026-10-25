@@ -283,16 +283,18 @@ def _cmd_mcp(args: list[str]) -> None:
         else:
             i += 1
 
+    # LOCAL_GRAPHIFY=true forces local file mode even if S3_PATH is set
+    local_mode = os.environ.get("LOCAL_GRAPHIFY", "").lower() in ("1", "true", "yes")
+
     # S3_PATH env var: s3://bucket/project
     s3_path_env = os.environ.get("S3_PATH", "")
-    if s3_path_env and not s3_bucket:
-        # s3://bucket/project  →  bucket=bucket, project=project
+    if s3_path_env and not s3_bucket and not local_mode:
         stripped = s3_path_env.lstrip("s3://").lstrip("/")
         parts = stripped.split("/", 1)
         s3_bucket = parts[0]
         s3_project = parts[1].strip("/") if len(parts) > 1 else s3_project
 
-    if s3_bucket and s3_project:
+    if s3_bucket and s3_project and not local_mode:
         store: SnapshotStore = S3SnapshotStore(s3_bucket, s3_project, s3_region)
     else:
         store = SnapshotStore(snapshots_dir or "graphify-out")

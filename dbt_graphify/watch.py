@@ -50,10 +50,18 @@ def watch(manifest_path: Path, out_dir: Path, skip_html: bool = False) -> None:
 
 def _rebuild(manifest_path: Path, out_dir: Path, skip_html: bool) -> None:
     from dbt_graphify.cli import _run_build
+    from dbt_graphify.snapshot import run_snapshot
 
     print("[dbt-graphify] manifest changed — rebuilding...")
     try:
         _run_build(manifest_path, out_dir, skip_html)
-        print("[dbt-graphify] graph updated.\n")
+        print("[dbt-graphify] graph updated.")
     except Exception as exc:
         print(f"[dbt-graphify] rebuild failed: {exc}\n")
+        return
+
+    try:
+        run_snapshot(out_dir)
+        print("[dbt-graphify] snapshot created.\n")
+    except Exception as exc:
+        print(f"[dbt-graphify] snapshot failed: {exc}\n")

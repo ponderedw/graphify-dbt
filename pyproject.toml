@@ -1,6 +1,6 @@
 [project]
 name = "dbt-graphify"
-version = "0.1.10"
+version = "0.1.11"
 description = "Parse a dbt manifest.json into a graphify-queryable knowledge graph"
 readme = "README.md"
 license = "MIT"
